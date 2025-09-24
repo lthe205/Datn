@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kết quả tìm kiếm - Activewear Store</title>
+    <link th:href="@{/css/home.css}" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header (giống trang chủ) -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
+                </div>
+                <div class="search-bar">
+                    <form th:action="@{/tim-kiem}" method="get">
+                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm..." th:value="${keyword}">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/gio-hang}" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        <span class="cart-count" th:if="${cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                    </a>
+                    
+                    <!-- Hiển thị khi chưa đăng nhập -->
+                    <a th:href="@{/dang-nhap}" class="login-btn" th:if="${currentUser == null or !currentUser.isAuthenticated() or currentUser.name == 'anonymousUser'}">
+                        <i class="fas fa-user"></i> Đăng nhập
+                    </a>
+                    
+                    <!-- Hiển thị khi đã đăng nhập -->
+                    <div class="user-menu" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
+                        <span class="welcome-text">Xin chào, <span th:text="${currentUser.name}">User</span></span>
+                        <div class="dropdown">
+                            <button class="user-btn">
+                                <i class="fas fa-user-circle"></i>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a th:href="@{/thong-tin-ca-nhan}"><i class="fas fa-user"></i> Thông tin cá nhân</a>
+                                <a th:href="@{/don-hang-cua-toi}"><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</a>
+                                <a th:href="@{/yeu-thich}"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <div sec:authorize="hasRole('Admin')" class="dropdown-divider"></div>
+                                <a sec:authorize="hasRole('Admin')" th:href="@{/admin/dashboard}"><i class="fas fa-cogs"></i> Quản lý Admin</a>
+                                <div class="dropdown-divider"></div>
+                                <a th:href="@{/dang-xuat}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
+                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
+                            </li>
+                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                            </li>
+                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
+                    <li><a href="#lien-he">Liên hệ</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Results -->
+    <main class="search-results">
+        <div class="container">
+            <div class="search-header">
+                <h1>Kết quả tìm kiếm</h1>
+                <p th:if="${keyword != null and !keyword.isEmpty()}">
+                    Tìm thấy <span th:text="${ketQuaTimKiem.totalElements}">0</span> sản phẩm cho từ khóa "<span th:text="${keyword}"></span>"
+                </p>
+                <p th:if="${keyword == null or keyword.isEmpty()}">
+                    Hiển thị tất cả sản phẩm
+                </p>
+            </div>
+
+            <div class="products-grid" th:if="${ketQuaTimKiem != null and !ketQuaTimKiem.content.isEmpty()}">
+                <div class="product-card" th:each="sanPham : ${ketQuaTimKiem.content}">
+                    <div class="product-image">
+                        <img th:src="${sanPham.anhChinh != null ? sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
+                             th:alt="${sanPham.ten}">
+                        <div class="product-badge" th:if="${sanPham.noiBat}">Nổi bật</div>
+                        <div class="product-actions">
+                            <button class="btn-icon"><i class="fas fa-heart"></i></button>
+                            <button class="btn-icon"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 th:text="${sanPham.ten}">Tên sản phẩm</h3>
+                        <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">Thương hiệu</p>
+                        <div class="product-price">
+                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            <span class="old-price" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}" 
+                                  th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        </div>
+                        <a th:href="@{'/san-pham/' + ${sanPham.id}}" class="btn-primary">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="no-results" th:if="${ketQuaTimKiem == null or ketQuaTimKiem.content.isEmpty()}">
+                <i class="fas fa-search"></i>
+                <h2>Không tìm thấy sản phẩm nào</h2>
+                <p>Hãy thử tìm kiếm với từ khóa khác hoặc duyệt các danh mục sản phẩm.</p>
+                <a th:href="@{/}" class="btn-primary">Về trang chủ</a>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" th:if="${ketQuaTimKiem != null and ketQuaTimKiem.totalPages > 1}">
+                <a th:if="${currentPage > 0}" 
+                   th:href="@{/tim-kiem(q=${keyword}, page=${currentPage - 1})}" 
+                   class="page-btn">Trước</a>
+                
+                <span th:each="i : ${#numbers.sequence(0, ketQuaTimKiem.totalPages - 1)}" 
+                      th:if="${i >= currentPage - 2 and i <= currentPage + 2}">
+                    <a th:href="@{/tim-kiem(q=${keyword}, page=${i})}" 
+                       th:class="${i == currentPage ? 'page-btn active' : 'page-btn'}"
+                       th:text="${i + 1}">1</a>
+                </span>
+                
+                <a th:if="${currentPage < ketQuaTimKiem.totalPages - 1}" 
+                   th:href="@{/tim-kiem(q=${keyword}, page=${currentPage + 1})}" 
+                   class="page-btn">Sau</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (giống trang chủ) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Activewear Store</h3>
+                    <p>Chuyên cung cấp quần áo thể thao chất lượng cao với giá cả hợp lý.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Danh mục</h4>
+                    <ul>
+                        <li><a href="#">Áo thun</a></li>
+                        <li><a href="#">Quần short</a></li>
+                        <li><a href="#">Giày thể thao</a></li>
+                        <li><a href="#">Phụ kiện</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ trợ</h4>
+                    <ul>
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Bảo hành</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên hệ</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> 0123 456 789</p>
+                        <p><i class="fas fa-envelope"></i> info@activewear.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Activewear Store. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .search-results {
+            padding: 40px 0;
+            min-height: 60vh;
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .search-header h1 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .search-header p {
+            font-size: 1.1rem;
+            color: #6b7280;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 20px;
+        }
+
+        .no-results h2 {
+            font-size: 2rem;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+
+        .no-results p {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+
+        .page-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #f3f4f6;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .page-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .page-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+    </style>
+
+    <script>
+        // Dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                // Chỉ add event listener cho dropdown button, không phải toàn bộ dropdown
+                const dropdownBtn = dropdown.querySelector('.user-btn, .dropdown-toggle');
+                if (dropdownBtn) {
+                    dropdownBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Đóng tất cả dropdown khác
+                        dropdowns.forEach(otherDropdown => {
+                            if (otherDropdown !== dropdown) {
+                                otherDropdown.classList.remove('active');
+                            }
+                        });
+                        // Toggle dropdown hiện tại
+                        dropdown.classList.toggle('active');
+                    });
+                }
+            });
+
+            // Đóng dropdown khi click bên ngoài
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

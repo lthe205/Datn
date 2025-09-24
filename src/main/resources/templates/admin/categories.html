@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý danh mục - Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-cogs"></i> Admin Panel</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                <li><a href="/admin/products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
+                <li class="active"><a href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
+                <li><a href="/admin/brands"><i class="fas fa-trademark"></i> Thương hiệu</a></li>
+                <li><a href="/"><i class="fas fa-home"></i> Về trang chủ</a></li>
+                <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <div class="admin-header">
+                <h1>Quản lý danh mục</h1>
+            </div>
+
+            <div class="admin-content">
+                <!-- Flash Messages -->
+                <div th:if="${success}" class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span th:text="${success}">Success message</span>
+                </div>
+                <div th:if="${error}" class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span th:text="${error}">Error message</span>
+                </div>
+
+                <!-- Add Category Form -->
+                <div class="form-card">
+                    <h3><i class="fas fa-plus"></i> Thêm danh mục mới</h3>
+                    <form th:action="@{/admin/categories}" method="post" th:object="${newCategory}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ten">Tên danh mục:</label>
+                                <input type="text" id="ten" th:field="*{ten}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="moTa">Mô tả:</label>
+                                <input type="text" id="moTa" th:field="*{moTa}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="danhMucCha">Danh mục cha (tùy chọn):</label>
+                            <select id="danhMucCha" th:field="*{danhMucCha}">
+                                <option value="">-- Chọn danh mục cha --</option>
+                                <option th:each="category : ${categories}" 
+                                        th:if="${category.danhMucCha == null}"
+                                        th:value="${category.id}" 
+                                        th:text="${category.ten}">Danh mục cha</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Thêm danh mục
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Categories List -->
+                <div class="data-table">
+                    <h3><i class="fas fa-list"></i> Danh sách danh mục</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên danh mục</th>
+                                <th>Mô tả</th>
+                                <th>Danh mục cha</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="category : ${categories}">
+                                <td th:text="${category.id}">1</td>
+                                <td>
+                                    <strong th:text="${category.ten}">Tên danh mục</strong>
+                                    <span th:if="${category.danhMucCha == null}" class="badge badge-primary">Danh mục cha</span>
+                                </td>
+                                <td th:text="${category.moTa}">Mô tả danh mục</td>
+                                <td>
+                                    <span th:if="${category.danhMucCha != null}">
+                                        <span th:text="${category.danhMucCha.ten}">Danh mục cha</span>
+                                    </span>
+                                    <span th:if="${category.danhMucCha == null}" class="text-muted">--</span>
+                                </td>
+                                <td th:text="${#temporals.format(category.ngayTao, 'dd/MM/yyyy')}">01/01/2024</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-warning" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

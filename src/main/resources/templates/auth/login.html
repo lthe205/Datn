@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Đăng nhập - Activewear Store</title>
+	<link th:href="@{/css/home.css}" rel="stylesheet" />
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+	<!-- Header -->
+	<header class="header">
+		<div class="container">
+			<div class="header-top">
+				<div class="logo">
+					<h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
+				</div>
+				<div class="search-bar">
+					<form th:action="@{/tim-kiem}" method="get">
+						<input type="text" name="q" placeholder="Tìm kiếm sản phẩm...">
+						<button type="submit"><i class="fas fa-search"></i></button>
+					</form>
+				</div>
+				<div class="header-actions">
+					<a href="#" class="cart-btn"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a>
+					<a th:href="@{/dang-nhap}" class="login-btn">
+						<i class="fas fa-user"></i> Đăng nhập
+					</a>
+				</div>
+			</div>
+			<nav class="main-nav">
+				<ul>
+					<li><a th:href="@{/}">Trang chủ</a></li>
+					<li><a href="#">Nam</a></li>
+					<li><a href="#">Nữ</a></li>
+					<li><a href="#">Trẻ em</a></li>
+					<li><a href="#">Phụ kiện</a></li>
+					<li><a href="#">Khuyến mãi</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<!-- Main Content -->
+	<main class="main-content">
+		<div class="container">
+			<div class="auth-section">
+				<div class="auth-card">
+					<div class="auth-header">
+						<h1><i class="fas fa-sign-in-alt"></i> Chào mừng trở lại</h1>
+						<p class="subtitle">Đăng nhập để tiếp tục mua sắm</p>
+					</div>
+					
+					<div th:if="${param.error}" class="alert alert-error">
+						<i class="fas fa-exclamation-circle"></i>
+						<span>Sai email hoặc mật khẩu</span>
+					</div>
+					<div th:if="${param.registered}" class="alert alert-success">
+						<i class="fas fa-check-circle"></i>
+						<span>Đăng ký thành công. Vui lòng đăng nhập.</span>
+					</div>
+					
+					<form th:action="@{/login}" method="post" class="auth-form">
+						<div class="form-group">
+							<label for="username"><i class="fas fa-envelope"></i> Email</label>
+							<input id="username" name="username" type="email" placeholder="email@domain.com" required />
+						</div>
+						<div class="form-group">
+							<label for="password"><i class="fas fa-lock"></i> Mật khẩu</label>
+							<input id="password" name="password" type="password" placeholder="••••••••" required />
+						</div>
+						<button type="submit" class="btn btn-primary btn-full">
+							<i class="fas fa-sign-in-alt"></i> Đăng nhập
+						</button>
+					</form>
+					
+					<div class="auth-footer">
+						<p>Chưa có tài khoản? <a th:href="@{/dang-ky}" class="auth-link">Đăng ký ngay</a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<!-- Footer -->
+	<footer class="footer">
+		<div class="container">
+			<div class="footer-content">
+				<div class="footer-section">
+					<h3>Về chúng tôi</h3>
+					<p>Activewear Store - Thương hiệu thời trang thể thao hàng đầu Việt Nam</p>
+				</div>
+				<div class="footer-section">
+					<h3>Liên kết</h3>
+					<ul>
+						<li><a href="#">Trang chủ</a></li>
+						<li><a href="#">Sản phẩm</a></li>
+						<li><a href="#">Về chúng tôi</a></li>
+						<li><a href="#">Liên hệ</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Hỗ trợ</h3>
+					<ul>
+						<li><a href="#">Hướng dẫn mua hàng</a></li>
+						<li><a href="#">Chính sách đổi trả</a></li>
+						<li><a href="#">Bảo hành</a></li>
+						<li><a href="#">FAQ</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Liên hệ</h3>
+					<p><i class="fas fa-phone"></i> 0123 456 789</p>
+					<p><i class="fas fa-envelope"></i> info@activewear.com</p>
+					<p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
+				</div>
+			</div>
+			<div class="footer-bottom">
+				<p>&copy; 2024 Activewear Store. Tất cả quyền được bảo lưu.</p>
+			</div>
+		</div>
+	</footer>
+</body>
+</html> 

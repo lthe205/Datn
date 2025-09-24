@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Danh sách yêu thích - Activewear Store</title>
+    <link th:href="@{/css/home.css}" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header (giống trang chủ) -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
+                </div>
+                <div class="search-bar">
+                    <form th:action="@{/tim-kiem}" method="get">
+                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm...">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/gio-hang}" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        <span class="cart-count" th:if="${cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                    </a>
+                    
+                    <!-- Hiển thị khi chưa đăng nhập -->
+                    <a th:href="@{/dang-nhap}" class="login-btn" th:if="${currentUser == null or !currentUser.isAuthenticated() or currentUser.name == 'anonymousUser'}">
+                        <i class="fas fa-user"></i> Đăng nhập
+                    </a>
+                    
+                    <!-- Hiển thị khi đã đăng nhập -->
+                    <div class="user-menu" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
+                        <span class="welcome-text">Xin chào, <span th:text="${currentUser.name}">User</span></span>
+                        <div class="dropdown">
+                            <button class="user-btn">
+                                <i class="fas fa-user-circle"></i>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a th:href="@{/thong-tin-ca-nhan}"><i class="fas fa-user"></i> Thông tin cá nhân</a>
+                                <a th:href="@{/don-hang-cua-toi}"><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</a>
+                                <a th:href="@{/yeu-thich}" class="active"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <div sec:authorize="hasRole('Admin')" class="dropdown-divider"></div>
+                                <a sec:authorize="hasRole('Admin')" th:href="@{/admin/dashboard}"><i class="fas fa-cogs"></i> Quản lý Admin</a>
+                                <div class="dropdown-divider"></div>
+                                <a th:href="@{/dang-xuat}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
+                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
+                            </li>
+                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                            </li>
+                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
+                    <li><a href="#lien-he">Liên hệ</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-heart"></i> Danh sách yêu thích
+                </h1>
+                <p class="page-subtitle" th:text="'Bạn có ' + ${favoriteCount} + ' sản phẩm yêu thích'">
+                    Bạn có 0 sản phẩm yêu thích
+                </p>
+            </div>
+
+            <div th:if="${favorites != null and !favorites.isEmpty()}" class="favorites-grid">
+                <div class="favorite-item" th:each="favorite : ${favorites}">
+                    <div class="product-image">
+                        <img th:src="${favorite.sanPham.anhChinh != null ? favorite.sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
+                             th:alt="${favorite.sanPham.ten}">
+                        <div class="product-badge" th:if="${favorite.sanPham.noiBat}">Nổi bật</div>
+                        <div class="product-actions">
+                            <button class="btn-icon" onclick="removeFavorite(this)" th:data-product-id="${favorite.sanPham.id}" title="Bỏ yêu thích">
+                                <i class="fas fa-heart-broken"></i>
+                            </button>
+                            <a th:href="@{/san-pham/{id}(id=${favorite.sanPham.id})}" class="btn-icon" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 th:text="${favorite.sanPham.ten}">Tên sản phẩm</h3>
+                        <p class="product-brand" th:text="${favorite.sanPham.thuongHieu?.ten}">Thương hiệu</p>
+                        <div class="product-price">
+                            <span class="current-price" th:text="${#numbers.formatDecimal(favorite.sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            <span class="old-price" th:if="${favorite.sanPham.giaGoc != null and favorite.sanPham.giaGoc > favorite.sanPham.gia}" 
+                                  th:text="${#numbers.formatDecimal(favorite.sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        </div>
+                        <div class="product-actions-bottom">
+                            <a th:href="@{/san-pham/{id}(id=${favorite.sanPham.id})}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> Xem chi tiết
+                            </a>
+                            <button class="btn btn-outline" onclick="removeFavorite(this)" th:data-product-id="${favorite.sanPham.id}">
+                                <i class="fas fa-heart-broken"></i> Bỏ yêu thích
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${favorites == null or favorites.isEmpty()}" class="empty-favorites">
+                <div class="empty-content">
+                    <i class="fas fa-heart-broken"></i>
+                    <h2>Chưa có sản phẩm yêu thích</h2>
+                    <p>Hãy thêm các sản phẩm yêu thích vào danh sách để dễ dàng tìm kiếm sau này!</p>
+                    <a th:href="@{/}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (giống trang chủ) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Activewear Store</h3>
+                    <p>Chuyên cung cấp quần áo thể thao chất lượng cao với giá cả hợp lý.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Danh mục</h4>
+                    <ul>
+                        <li><a href="#">Áo thun</a></li>
+                        <li><a href="#">Quần short</a></li>
+                        <li><a href="#">Giày thể thao</a></li>
+                        <li><a href="#">Phụ kiện</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ trợ</h4>
+                    <ul>
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Bảo hành</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên hệ</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> 0123 456 789</p>
+                        <p><i class="fas fa-envelope"></i> info@activewear.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Activewear Store. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .page-header {
+            text-align: center;
+            margin: 40px 0 60px 0;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .page-title i {
+            color: #e91e63;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .favorite-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .favorite-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .favorite-item .product-image {
+            position: relative;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .favorite-item .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .favorite-item:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .favorite-item .product-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #e91e63;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .favorite-item .product-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s;
+        }
+
+        .favorite-item:hover .product-actions {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .favorite-item .btn-icon {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            color: #6b7280;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .favorite-item .btn-icon:hover {
+            background: #e91e63;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .favorite-item .product-info {
+            padding: 20px;
+        }
+
+        .favorite-item .product-info h3 {
+            font-size: 1.2rem;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .favorite-item .product-brand {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .favorite-item .product-price {
+            margin-bottom: 20px;
+        }
+
+        .favorite-item .current-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #e91e63;
+        }
+
+        .favorite-item .old-price {
+            font-size: 1rem;
+            color: #9ca3af;
+            text-decoration: line-through;
+            margin-left: 10px;
+        }
+
+        .favorite-item .product-actions-bottom {
+            display: flex;
+            gap: 10px;
+        }
+
+        .favorite-item .btn {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .favorite-item .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .favorite-item .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .favorite-item .btn-outline {
+            background: transparent;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+        }
+
+        .favorite-item .btn-outline:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+
+        .empty-favorites {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-content i {
+            font-size: 4rem;
+            color: #e5e7eb;
+            margin-bottom: 20px;
+        }
+
+        .empty-content h2 {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .empty-content p {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .empty-content .btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .favorites-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .favorite-item .product-actions-bottom {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        function removeFavorite(button) {
+            const productId = button.getAttribute('data-product-id');
+            const favoriteItem = button.closest('.favorite-item');
+            
+            if (!confirm('Bạn có chắc muốn bỏ yêu thích sản phẩm này?')) {
+                return;
+            }
+
+            // Show loading state
+            const originalContent = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+            button.disabled = true;
+
+            // Make AJAX request
+            fetch('/yeu-thich/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'sanPhamId=' + productId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove item from DOM with animation
+                    favoriteItem.style.transition = 'all 0.3s ease';
+                    favoriteItem.style.transform = 'translateX(-100%)';
+                    favoriteItem.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        favoriteItem.remove();
+                        
+                        // Check if no more favorites
+                        const remainingItems = document.querySelectorAll('.favorite-item');
+                        if (remainingItems.length === 0) {
+                            location.reload(); // Reload to show empty state
+                        }
+                    }, 300);
+                } else {
+                    alert('Có lỗi xảy ra: ' + data.message);
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xử lý yêu thích');
+                button.innerHTML = originalContent;
+                button.disabled = false;
+            });
+        }
+
+        // Dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                const dropdownBtn = dropdown.querySelector('.user-btn, .dropdown-toggle');
+                if (dropdownBtn) {
+                    dropdownBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        dropdowns.forEach(otherDropdown => {
+                            if (otherDropdown !== dropdown) {
+                                otherDropdown.classList.remove('active');
+                            }
+                        });
+                        dropdown.classList.toggle('active');
+                    });
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

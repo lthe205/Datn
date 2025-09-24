@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý biến thể sản phẩm - Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-cogs"></i> Admin Panel</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                <li class="active"><a href="/admin/products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
+                <li><a href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
+                <li><a href="/admin/brands"><i class="fas fa-trademark"></i> Thương hiệu</a></li>
+                <li><a href="/"><i class="fas fa-home"></i> Về trang chủ</a></li>
+                <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <div class="admin-header">
+                <h1>Quản lý biến thể sản phẩm</h1>
+                <div class="admin-user">
+                    <span th:if="${#authentication.principal instanceof T(com.example.datn.auth.CustomUserDetails)}">
+                        Xin chào, <strong th:text="${#authentication.principal.domainUser.ten}">Admin</strong>
+                    </span>
+                    <a th:href="@{/admin/products}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-content">
+                <!-- Product Info -->
+                <div class="product-info-card">
+                    <div class="product-image">
+                        <img th:src="${product.anhChinh}" th:alt="${product.ten}" onerror="this.src='/images/no-image.jpg'">
+                    </div>
+                    <div class="product-details">
+                        <h2 th:text="${product.ten}">Tên sản phẩm</h2>
+                        <p class="product-code">Mã: <span th:text="${product.maSanPham}">SP001</span></p>
+                        <p class="product-price">
+                            Giá: <span th:text="${#numbers.formatDecimal(product.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Flash Messages -->
+                <div th:if="${success}" class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span th:text="${success}">Success message</span>
+                </div>
+                <div th:if="${error}" class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span th:text="${error}">Error message</span>
+                </div>
+
+                <!-- Add Variant Form -->
+                <div class="form-card">
+                    <h3><i class="fas fa-plus-circle"></i> Thêm biến thể mới</h3>
+                    <form th:action="@{/admin/products/{id}/variants/add(id=${product.id})}" method="post">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="kichCo">Kích cỡ:</label>
+                                <input type="text" id="kichCo" name="kichCo" placeholder="S, M, L, XL..." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="mauSac">Màu sắc:</label>
+                                <input type="text" id="mauSac" name="mauSac" placeholder="Đen, Trắng, Xanh..." required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="soLuong">Số lượng:</label>
+                                <input type="number" id="soLuong" name="soLuong" min="0" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="giaBan">Giá bán:</label>
+                                <input type="number" id="giaBan" name="giaBan" step="0.01" min="0" th:value="${product.gia}" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="giaKhuyenMai">Giá khuyến mại:</label>
+                                <input type="number" id="giaKhuyenMai" name="giaKhuyenMai" step="0.01" min="0">
+                                <small>Để trống nếu không có khuyến mại</small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="trangThai" value="true" checked> Hoạt động
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Thêm biến thể
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Variants Table -->
+                <div class="data-table">
+                    <h3><i class="fas fa-palette"></i> Danh sách biến thể</h3>
+                    <div th:if="${variants == null or variants.isEmpty()}" class="empty-state">
+                        <i class="fas fa-palette"></i>
+                        <p>Chưa có biến thể nào cho sản phẩm này</p>
+                    </div>
+                    <table th:if="${variants != null and !variants.isEmpty()}">
+                        <thead>
+                            <tr>
+                                <th>Kích cỡ</th>
+                                <th>Màu sắc</th>
+                                <th>Số lượng</th>
+                                <th>Giá bán</th>
+                                <th>Giá KM</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="variant : ${variants}">
+                                <td th:text="${variant.kichCo}">S</td>
+                                <td>
+                                    <div class="color-display">
+                                        <span class="color-dot" th:style="'background-color: ' + ${colorMap[variant.mauSac]} + ';'" th:title="${variant.mauSac}"></span>
+                                        <span th:text="${variant.mauSac}">Đen</span>
+                                    </div>
+                                </td>
+                                <td th:text="${variant.soLuong}">0</td>
+                                <td th:text="${#numbers.formatDecimal(variant.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</td>
+                                <td>
+                                    <span th:if="${variant.giaKhuyenMai != null and variant.giaKhuyenMai > 0}" 
+                                          th:text="${#numbers.formatDecimal(variant.giaKhuyenMai, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                                    <span th:if="${variant.giaKhuyenMai == null or variant.giaKhuyenMai <= 0}" 
+                                          class="no-discount">-</span>
+                                </td>
+                                <td>
+                                    <span th:class="'status ' + (${variant.trangThai} ? 'active' : 'inactive')" 
+                                          th:text="${variant.trangThai} ? 'Hoạt động' : 'Ẩn'">Hoạt động</span>
+                                </td>
+                                <td class="actions">
+                                    <form method="post" th:action="@{/admin/products/{productId}/variants/{id}/toggle(id=${variant.id}, productId=${product.id})}" class="inline-form">
+                                        <button type="submit" 
+                                                th:class="'btn btn-sm ' + (${variant.trangThai} ? 'btn-warning' : 'btn-success')"
+                                                th:title="${variant.trangThai} ? 'Ẩn biến thể' : 'Hiển thị biến thể'">
+                                            <i th:class="${variant.trangThai} ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" th:action="@{/admin/products/{productId}/variants/{id}/delete(id=${variant.id}, productId=${product.id})}" 
+                                          class="inline-form" 
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa biến thể này?')">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Xóa biến thể">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+
+    <style>
+        .product-info-card {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .product-image {
+            width: 80px;
+            height: 80px;
+            margin-right: 20px;
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .product-details h2 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        
+        .product-code {
+            color: #666;
+            margin: 4px 0;
+        }
+        
+        .product-price {
+            color: #e74c3c;
+            font-weight: 600;
+            margin: 4px 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #ddd;
+        }
+        
+        .color-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            display: inline-block;
+        }
+        
+        .no-discount {
+            color: #999;
+            font-style: italic;
+        }
+        
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #f57c00;
+        }
+    </style>
+</body>
+</html>

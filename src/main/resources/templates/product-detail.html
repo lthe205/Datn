@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${sanPham?.ten} + ' - Activewear Store'">Chi tiết sản phẩm - Activewear Store</title>
+    <link th:href="@{/css/home.css}" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header (giống trang chủ) -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
+                </div>
+                <div class="search-bar">
+                    <form th:action="@{/tim-kiem}" method="get">
+                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm...">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/gio-hang}" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        <span class="cart-count" th:if="${cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                    </a>
+                    
+                    <!-- Hiển thị khi chưa đăng nhập -->
+                    <a th:href="@{/dang-nhap}" class="login-btn" th:if="${currentUser == null or !currentUser.isAuthenticated() or currentUser.name == 'anonymousUser'}">
+                        <i class="fas fa-user"></i> Đăng nhập
+                    </a>
+                    
+                    <!-- Hiển thị khi đã đăng nhập -->
+                    <div class="user-menu" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
+                        <span class="welcome-text">Xin chào, <span th:text="${currentUser.name}">User</span></span>
+                        <div class="dropdown">
+                            <button class="user-btn">
+                                <i class="fas fa-user-circle"></i>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a th:href="@{/thong-tin-ca-nhan}"><i class="fas fa-user"></i> Thông tin cá nhân</a>
+                                <a th:href="@{/don-hang-cua-toi}"><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</a>
+                                <a th:href="@{/yeu-thich}"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <div sec:authorize="hasRole('Admin')" class="dropdown-divider"></div>
+                                <a sec:authorize="hasRole('Admin')" th:href="@{/admin/dashboard}"><i class="fas fa-cogs"></i> Quản lý Admin</a>
+                                <div class="dropdown-divider"></div>
+                                <a th:href="@{/dang-xuat}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
+                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
+                            </li>
+                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                            </li>
+                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
+                    <li><a href="#lien-he">Liên hệ</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Product Detail -->
+    <main class="product-detail" th:if="${sanPham != null}">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">Trang chủ</a>
+                <span>/</span>
+                <a th:href="@{'/danh-muc/' + ${sanPham.danhMuc.id}}" th:text="${sanPham.danhMuc.ten}">Danh mục</a>
+                <span>/</span>
+                <span th:text="${sanPham.ten}">Sản phẩm</span>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <div th:if="${param.success}" class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${param.success}"></span>
+            </div>
+            <div th:if="${param.error}" class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${param.error}"></span>
+            </div>
+
+            <div class="product-detail-content">
+                <div class="product-images">
+                    <div class="main-image">
+                        <img th:src="${sanPham.anhChinh != null ? sanPham.anhChinh : 'https://via.placeholder.com/500x500'}" 
+                             th:alt="${sanPham.ten}" id="mainImage">
+                    </div>
+                    <div class="thumbnail-images" th:if="${anhSanPham != null and !anhSanPham.isEmpty()}">
+                        <img th:each="anh, iterStat : ${anhSanPham}" 
+                             th:src="${anh.urlAnh}" 
+                             th:alt="${sanPham.ten}"
+                             th:data-image-url="${anh.urlAnh}"
+                             onclick="changeMainImage(this.getAttribute('data-image-url'))"
+                             th:class="${iterStat.first ? 'thumbnail active' : 'thumbnail'}">
+                    </div>
+                </div>
+
+                <div class="product-info">
+                    <h1 th:text="${sanPham.ten}">Tên sản phẩm</h1>
+                    <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">Thương hiệu</p>
+                    
+                    <div class="product-price">
+                        <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        <span class="old-price" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}" 
+                              th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        <span class="discount" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}">
+                            -<span th:text="${#numbers.formatDecimal((sanPham.giaGoc - sanPham.gia) / sanPham.giaGoc * 100, 0, 'COMMA', 0, 'POINT')}">0</span>%
+                        </span>
+                    </div>
+
+                    <!-- Biến thể sản phẩm -->
+                    <div class="product-variants" th:if="${bienTheSanPham != null and !bienTheSanPham.isEmpty()}">
+                        <!-- Chọn kích cỡ -->
+                        <div class="variant-group" th:if="${availableSizes != null and !availableSizes.isEmpty()}">
+                            <h3>Kích cỡ</h3>
+                            <div class="variant-options">
+                                <button type="button" 
+                                        class="variant-option" 
+                                        th:each="size : ${availableSizes}"
+                                        th:data-size="${size}"
+                                        th:text="${size}"
+                                        onclick="selectSize(this)">
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Chọn màu sắc -->
+                        <div class="variant-group" th:if="${availableColors != null and !availableColors.isEmpty()}">
+                            <h3>Màu sắc</h3>
+                            <div class="variant-options">
+                                <button type="button" 
+                                        class="variant-option color-option" 
+                                        th:each="color : ${availableColors}"
+                                        th:data-color="${color}"
+                                        th:text="${color}"
+                                        th:style="'background-color: ' + ${colorMap[color]} + ';'"
+                                        onclick="selectColor(this)">
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Hiển thị giá và số lượng của biến thể được chọn -->
+                        <div class="variant-info" id="variantInfo" style="display: none;">
+                            <div class="variant-price">
+                                <span class="current-price" id="variantPrice">0 ₫</span>
+                                <span class="old-price" id="variantOldPrice" style="display: none;">0 ₫</span>
+                            </div>
+                            <div class="variant-stock">
+                                <span id="variantStock">Còn hàng</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-description" th:if="${sanPham.moTa != null}">
+                        <h3>Mô tả sản phẩm</h3>
+                        <p th:text="${sanPham.moTa}">Mô tả sản phẩm</p>
+                    </div>
+
+                    <div class="product-specs">
+                        <h3>Thông số kỹ thuật</h3>
+                        <div class="specs-grid">
+                            <div class="spec-item" th:if="${sanPham.chatLieu != null}">
+                                <span class="spec-label">Chất liệu:</span>
+                                <span class="spec-value" th:text="${sanPham.chatLieu}">-</span>
+                            </div>
+                            <div class="spec-item" th:if="${sanPham.xuatXu != null}">
+                                <span class="spec-label">Xuất xứ:</span>
+                                <span class="spec-value" th:text="${sanPham.xuatXu}">-</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Số lượng tồn:</span>
+                                <span class="spec-value" th:text="${sanPham.soLuongTon}">0</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Lượt xem:</span>
+                                <span class="spec-value" th:text="${sanPham.luotXem}">0</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Đã bán:</span>
+                                <span class="spec-value" th:text="${sanPham.daBan}">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-actions">
+                        <div class="quantity-selector">
+                            <label>Số lượng:</label>
+                            <div class="quantity-controls">
+                                <button type="button" onclick="decreaseQuantity()">-</button>
+                                <input type="number" id="quantity" value="1" min="1" th:max="${sanPham.soLuongTon}">
+                                <button type="button" onclick="increaseQuantity()">+</button>
+                            </div>
+                        </div>
+                        
+
+                        <div class="action-buttons">
+                            <!-- Thêm vào giỏ hàng - hiển thị cho tất cả user -->
+                            <form th:action="@{/gio-hang/them}" method="post" class="inline-form">
+                                <input type="hidden" name="sanPhamId" th:value="${sanPham.id}">
+                                <input type="hidden" name="soLuong" id="hiddenQuantity" value="1">
+                                <input type="hidden" name="kichCo" id="hiddenKichCo" value="">
+                                <input type="hidden" name="mauSac" id="hiddenMauSac" value="">
+                                <button type="submit" class="btn-primary btn-large" id="addToCartBtn">
+                                    <i class="fas fa-shopping-cart"></i> Thêm vào giỏ hàng
+                                </button>
+                            </form>
+                            
+                            <!-- Mua ngay - hiển thị cho tất cả user -->
+                            <form th:action="@{/gio-hang/mua-ngay}" method="post" class="inline-form">
+                                <input type="hidden" name="sanPhamId" th:value="${sanPham.id}">
+                                <input type="hidden" name="soLuong" id="hiddenQuantityBuy" value="1">
+                                <input type="hidden" name="kichCo" id="hiddenKichCoBuy" value="">
+                                <input type="hidden" name="mauSac" id="hiddenMauSacBuy" value="">
+                                <button type="submit" class="btn-secondary btn-large" id="buyNowBtn">
+                                    <i class="fas fa-bolt"></i> Mua ngay
+                                </button>
+                            </form>
+                            
+                            <!-- Yêu thích - chỉ hiển thị khi đã đăng nhập -->
+                            <button type="button" 
+                                    class="btn-outline btn-large favorite-btn" 
+                                    th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}"
+                                    th:data-product-id="${sanPham.id}"
+                                    th:classappend="${isFavorite} ? 'favorited' : ''"
+                                    onclick="toggleFavorite(this)">
+                                <i class="fas fa-heart" th:classappend="${isFavorite} ? 'fas' : 'far'"></i> 
+                                <span th:text="${isFavorite} ? 'Đã yêu thích' : 'Yêu thích'">Yêu thích</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Products -->
+            <section class="related-products" th:if="${sanPhamLienQuan != null and !sanPhamLienQuan.isEmpty()}">
+                <h2>Sản phẩm liên quan</h2>
+                <div class="products-grid">
+                    <div class="product-card" th:each="sp : ${sanPhamLienQuan}">
+                        <div class="product-image">
+                            <img th:src="${sp.anhChinh != null ? sp.anhChinh : 'https://via.placeholder.com/300x300'}" 
+                                 th:alt="${sp.ten}">
+                            <div class="product-badge" th:if="${sp.noiBat}">Nổi bật</div>
+                            <div class="product-actions">
+                                <button class="btn-icon"><i class="fas fa-heart"></i></button>
+                                <button class="btn-icon"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3 th:text="${sp.ten}">Tên sản phẩm</h3>
+                            <p class="product-brand" th:text="${sp.thuongHieu?.ten}">Thương hiệu</p>
+                            <div class="product-price">
+                                <span class="current-price" th:text="${#numbers.formatDecimal(sp.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                                <span class="old-price" th:if="${sp.giaGoc != null and sp.giaGoc > sp.gia}" 
+                                      th:text="${#numbers.formatDecimal(sp.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            </div>
+                            <a th:href="@{'/san-pham/' + ${sp.id}}" class="btn-primary">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 404 Error -->
+    <main class="error-404" th:if="${sanPham == null}">
+        <div class="container">
+            <div class="error-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h1>Không tìm thấy sản phẩm</h1>
+                <p>Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+                <a th:href="@{/}" class="btn-primary">Về trang chủ</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (giống trang chủ) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Activewear Store</h3>
+                    <p>Chuyên cung cấp quần áo thể thao chất lượng cao với giá cả hợp lý.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Danh mục</h4>
+                    <ul>
+                        <li><a href="#">Áo thun</a></li>
+                        <li><a href="#">Quần short</a></li>
+                        <li><a href="#">Giày thể thao</a></li>
+                        <li><a href="#">Phụ kiện</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ trợ</h4>
+                    <ul>
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Bảo hành</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên hệ</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> 0123 456 789</p>
+                        <p><i class="fas fa-envelope"></i> info@activewear.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Activewear Store. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .product-detail {
+            padding: 40px 0;
+        }
+
+        .breadcrumb {
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            margin: 0 10px;
+            color: #6b7280;
+        }
+
+        .product-detail-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 80px;
+        }
+
+        .product-images {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-images {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            opacity: 1;
+            border-color: #2563eb;
+        }
+
+        .product-info h1 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .product-brand {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .current-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .old-price {
+            font-size: 1.2rem;
+            color: #9ca3af;
+            text-decoration: line-through;
+        }
+
+        .discount {
+            background: #ef4444;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .product-variants {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .variant-group {
+            margin-bottom: 20px;
+        }
+
+        .variant-group h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .variant-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .variant-option {
+            padding: 8px 16px;
+            border: 2px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .variant-option:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .variant-option.selected {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: white;
+        }
+
+        .variant-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-option::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            transition: border-color 0.3s ease;
+        }
+
+        .color-option.selected::after {
+            border-color: white;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+
+        .variant-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .variant-price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .variant-stock {
+            font-size: 0.9rem;
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .variant-stock.out-of-stock {
+            color: #dc2626;
+        }
+
+        .product-description,
+        .product-specs {
+            margin-bottom: 30px;
+        }
+
+        .product-description h3,
+        .product-specs h3 {
+            font-size: 1.3rem;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .product-description p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .specs-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .spec-label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .spec-value {
+            color: #6b7280;
+        }
+
+        .product-actions {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 30px;
+        }
+
+        .quantity-selector {
+            margin-bottom: 20px;
+        }
+
+        .quantity-selector label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .quantity-controls button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #374151;
+        }
+
+        .quantity-controls button:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .quantity-controls button:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .quantity-controls input {
+            width: 80px;
+            height: 40px;
+            border: 1px solid #d1d5db;
+            border-left: none;
+            border-right: none;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons form {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .action-buttons button {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .action-buttons .btn-primary {
+            background: #2563eb;
+            color: white;
+            border: none;
+        }
+
+        .action-buttons .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .action-buttons .btn-secondary {
+            background: #10b981;
+            color: white;
+            border: none;
+        }
+
+        .action-buttons .btn-secondary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .action-buttons .btn-outline {
+            background: transparent;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+        }
+
+        .action-buttons .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            transform: translateY(-2px);
+        }
+
+        /* Favorite button styles */
+        .favorite-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .favorite-btn.favorited {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+
+        .favorite-btn.favorited:hover {
+            background: #fee2e2;
+            border-color: #f87171;
+        }
+
+        .favorite-btn i {
+            transition: all 0.3s ease;
+        }
+
+        .favorite-btn.favorited i {
+            color: #dc2626;
+            animation: heartbeat 0.6s ease-in-out;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .favorite-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-large {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .related-products {
+            margin-top: 80px;
+        }
+
+        .related-products h2 {
+            text-align: center;
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 40px;
+        }
+
+        .error-404 {
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .error-content i {
+            font-size: 4rem;
+            color: #f59e0b;
+            margin-bottom: 20px;
+        }
+
+        .error-content h1 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .error-content p {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        /* Alert styles */
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert i {
+            font-size: 1rem;
+        }
+
+        /* Loading states */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .product-detail-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .main-image {
+                height: 300px;
+            }
+
+            .product-info h1 {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        function changeMainImage(imageUrl) {
+            document.getElementById('mainImage').src = imageUrl;
+            
+            // Update active thumbnail
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                thumb.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function increaseQuantity() {
+            const quantityInput = document.getElementById('quantity');
+            const max = parseInt(quantityInput.getAttribute('max'));
+            const current = parseInt(quantityInput.value);
+            if (current < max) {
+                quantityInput.value = current + 1;
+                updateHiddenQuantities();
+            } else {
+                showAlert('Số lượng không thể vượt quá tồn kho hiện có!', 'error');
+            }
+        }
+
+        function decreaseQuantity() {
+            const quantityInput = document.getElementById('quantity');
+            const current = parseInt(quantityInput.value);
+            if (current > 1) {
+                quantityInput.value = current - 1;
+                updateHiddenQuantities();
+            }
+        }
+
+        function validateQuantity() {
+            const quantityInput = document.getElementById('quantity');
+            const max = parseInt(quantityInput.getAttribute('max'));
+            const current = parseInt(quantityInput.value);
+            
+            if (current < 1) {
+                quantityInput.value = 1;
+                showAlert('Số lượng phải lớn hơn 0!', 'error');
+            } else if (current > max) {
+                quantityInput.value = max;
+                showAlert('Số lượng không thể vượt quá tồn kho hiện có!', 'error');
+            }
+            
+            updateHiddenQuantities();
+        }
+
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create new alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            // Insert after breadcrumb
+            const breadcrumb = document.querySelector('.breadcrumb');
+            breadcrumb.parentNode.insertBefore(alertDiv, breadcrumb.nextSibling);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        function updateHiddenQuantities() {
+            const quantityInput = document.getElementById('quantity');
+            const hiddenQuantity = document.getElementById('hiddenQuantity');
+            const hiddenQuantityBuy = document.getElementById('hiddenQuantityBuy');
+            
+            if (hiddenQuantity) hiddenQuantity.value = quantityInput.value;
+            if (hiddenQuantityBuy) hiddenQuantityBuy.value = quantityInput.value;
+        }
+
+        // Biến thể sản phẩm
+        let selectedSize = '';
+        let selectedColor = '';
+        let variants = /*[[${bienTheSanPham}]]*/ [];
+
+        function selectSize(element) {
+            // Remove previous selection
+            document.querySelectorAll('.variant-option[data-size]').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selection to clicked element
+            element.classList.add('selected');
+            selectedSize = element.getAttribute('data-size');
+            
+            // Update hidden inputs
+            document.getElementById('hiddenKichCo').value = selectedSize;
+            document.getElementById('hiddenKichCoBuy').value = selectedSize;
+            
+            // Update variant info
+            updateVariantInfo();
+        }
+
+        function selectColor(element) {
+            // Remove previous selection
+            document.querySelectorAll('.variant-option[data-color]').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selection to clicked element
+            element.classList.add('selected');
+            selectedColor = element.getAttribute('data-color');
+            
+            // Update hidden inputs
+            document.getElementById('hiddenMauSac').value = selectedColor;
+            document.getElementById('hiddenMauSacBuy').value = selectedColor;
+            
+            // Update variant info
+            updateVariantInfo();
+        }
+
+        function updateVariantInfo() {
+            if (!selectedSize && !selectedColor) {
+                document.getElementById('variantInfo').style.display = 'none';
+                return;
+            }
+
+            // Find matching variant
+            const variant = variants.find(v => {
+                const sizeMatch = !selectedSize || v.kichCo === selectedSize;
+                const colorMatch = !selectedColor || v.mauSac === selectedColor;
+                return sizeMatch && colorMatch;
+            });
+
+            if (variant) {
+                document.getElementById('variantInfo').style.display = 'block';
+                
+                // Update price
+                const priceElement = document.getElementById('variantPrice');
+                const oldPriceElement = document.getElementById('variantOldPrice');
+                
+                if (variant.giaBan) {
+                    priceElement.textContent = new Intl.NumberFormat('vi-VN').format(variant.giaBan) + ' ₫';
+                }
+                
+                if (variant.giaKhuyenMai && variant.giaKhuyenMai < variant.giaBan) {
+                    oldPriceElement.textContent = new Intl.NumberFormat('vi-VN').format(variant.giaBan) + ' ₫';
+                    oldPriceElement.style.display = 'inline';
+                    priceElement.textContent = new Intl.NumberFormat('vi-VN').format(variant.giaKhuyenMai) + ' ₫';
+                } else {
+                    oldPriceElement.style.display = 'none';
+                }
+                
+                // Update stock
+                const stockElement = document.getElementById('variantStock');
+                if (variant.soLuong > 0) {
+                    stockElement.textContent = `Còn ${variant.soLuong} sản phẩm`;
+                    stockElement.className = 'variant-stock';
+                } else {
+                    stockElement.textContent = 'Hết hàng';
+                    stockElement.className = 'variant-stock out-of-stock';
+                }
+            } else {
+                document.getElementById('variantInfo').style.display = 'none';
+            }
+        }
+
+        function addToCart(form) {
+            // Check if variants are required
+            const hasVariants = document.querySelector('.product-variants') !== null;
+            if (hasVariants) {
+                const sizeRequired = document.querySelector('.variant-group[th\\:if*="availableSizes"]') !== null;
+                const colorRequired = document.querySelector('.variant-group[th\\:if*="availableColors"]') !== null;
+                
+                if (sizeRequired && !selectedSize) {
+                    alert('Vui lòng chọn kích cỡ');
+                    return;
+                }
+                
+                if (colorRequired && !selectedColor) {
+                    alert('Vui lòng chọn màu sắc');
+                    return;
+                }
+            }
+
+            const button = form.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+            button.disabled = true;
+            
+            // Submit form
+            form.submit();
+        }
+
+        function buyNow(form) {
+            const button = form.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+            button.disabled = true;
+            
+            // Submit form
+            form.submit();
+        }
+
+        function toggleFavorite(button) {
+            const productId = button.getAttribute('data-product-id');
+            const icon = button.querySelector('i');
+            const text = button.querySelector('span');
+            
+            // Disable button during request
+            button.disabled = true;
+            
+            // Show loading state
+            const originalIcon = icon.className;
+            const originalText = text.textContent;
+            icon.className = 'fas fa-spinner fa-spin';
+            text.textContent = 'Đang xử lý...';
+            
+            // Make AJAX request
+            fetch('/yeu-thich/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'sanPhamId=' + productId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle visual state
+                    if (data.isFavorite) {
+                        button.classList.add('favorited');
+                        icon.className = 'fas fa-heart';
+                        text.textContent = 'Đã yêu thích';
+                    } else {
+                        button.classList.remove('favorited');
+                        icon.className = 'far fa-heart';
+                        text.textContent = 'Yêu thích';
+                    }
+                    
+                    // Show success message
+                    showAlert(data.message, 'success');
+                } else {
+                    // Show error message
+                    showAlert(data.message, 'error');
+                    
+                    // Restore original state
+                    icon.className = originalIcon;
+                    text.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Có lỗi xảy ra khi xử lý yêu thích', 'error');
+                
+                // Restore original state
+                icon.className = originalIcon;
+                text.textContent = originalText;
+            })
+            .finally(() => {
+                // Re-enable button
+                button.disabled = false;
+            });
+        }
+
+        // Update hidden quantities when quantity input changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInput = document.getElementById('quantity');
+            if (quantityInput) {
+                quantityInput.addEventListener('change', validateQuantity);
+                quantityInput.addEventListener('input', updateHiddenQuantities);
+                quantityInput.addEventListener('blur', validateQuantity);
+            }
+        });
+
+        // Dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                // Chỉ add event listener cho dropdown button, không phải toàn bộ dropdown
+                const dropdownBtn = dropdown.querySelector('.user-btn, .dropdown-toggle');
+                if (dropdownBtn) {
+                    dropdownBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Đóng tất cả dropdown khác
+                        dropdowns.forEach(otherDropdown => {
+                            if (otherDropdown !== dropdown) {
+                                otherDropdown.classList.remove('active');
+                            }
+                        });
+                        // Toggle dropdown hiện tại
+                        dropdown.classList.toggle('active');
+                    });
+                }
+            });
+
+            // Đóng dropdown khi click bên ngoài
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

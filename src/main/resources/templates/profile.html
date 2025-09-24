@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin cá nhân - Activewear Store</title>
+    <link th:href="@{/css/home.css}" rel="stylesheet">
+    <link th:href="@{/css/profile.css}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
+                </div>
+                <div class="search-bar">
+                    <form th:action="@{/tim-kiem}" method="get">
+                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm...">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/gio-hang}" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        <span class="cart-count" th:if="${cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                    </a>
+                    
+                    <!-- Hiển thị khi chưa đăng nhập -->
+                    <a th:href="@{/dang-nhap}" class="login-btn" th:if="${currentUser == null or !currentUser.isAuthenticated() or currentUser.name == 'anonymousUser'}">
+                        <i class="fas fa-user"></i> Đăng nhập
+                    </a>
+                    
+                    <!-- Hiển thị khi đã đăng nhập -->
+                    <div class="user-menu" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
+                        <span class="welcome-text">Xin chào, <span th:text="${currentUser.name}">User</span></span>
+                        <div class="dropdown">
+                            <button class="user-btn">
+                                <i class="fas fa-user-circle"></i>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a th:href="@{/thong-tin-ca-nhan}" class="active"><i class="fas fa-user"></i> Thông tin cá nhân</a>
+                                <a th:href="@{/don-hang-cua-toi}"><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</a>
+                                <a th:href="@{/yeu-thich}"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <div sec:authorize="hasRole('Admin')" class="dropdown-divider"></div>
+                                <a sec:authorize="hasRole('Admin')" th:href="@{/admin/dashboard}"><i class="fas fa-cogs"></i> Quản lý Admin</a>
+                                <div class="dropdown-divider"></div>
+                                <a th:href="@{/dang-xuat}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
+                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
+                            </li>
+                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                            </li>
+                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
+                    <li><a href="#lien-he">Liên hệ</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="profile-main">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a th:href="@{/}"><i class="fas fa-home"></i> Trang chủ</a>
+                <span>/</span>
+                <span>Thông tin cá nhân</span>
+            </div>
+
+            <div class="profile-container">
+                <!-- Sidebar -->
+                <div class="profile-sidebar">
+                    <div class="profile-avatar">
+                        <div class="avatar-circle">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3 th:text="${nguoiDung.ten}">Tên người dùng</h3>
+                        <p th:text="${nguoiDung.email}">email@example.com</p>
+                    </div>
+                    
+                    <nav class="profile-nav">
+                        <ul>
+                            <li><a href="#info" class="nav-link active" data-tab="info"><i class="fas fa-user"></i> Thông tin cá nhân</a></li>
+                            <li><a href="#password" class="nav-link" data-tab="password"><i class="fas fa-lock"></i> Đổi mật khẩu</a></li>
+                            <li><a th:href="@{/don-hang-cua-toi}"><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</a></li>
+                            <li><a th:href="@{/yeu-thich}"><i class="fas fa-heart"></i> Sản phẩm yêu thích</a></li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Content -->
+                <div class="profile-content">
+                    <!-- Success/Error Messages -->
+                    <div th:if="${successMessage}" class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <span th:text="${successMessage}"></span>
+                    </div>
+                    
+                    <div th:if="${errorMessage}" class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <!-- Thông tin cá nhân Tab -->
+                    <div id="info" class="tab-content active">
+                        <div class="content-header">
+                            <h2><i class="fas fa-user"></i> Thông tin cá nhân</h2>
+                            <p>Quản lý thông tin cá nhân của bạn</p>
+                        </div>
+
+                        <form th:action="@{/thong-tin-ca-nhan/cap-nhat}" method="post" th:object="${profileForm}" class="profile-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="ten"><i class="fas fa-user"></i> Họ và tên *</label>
+                                    <input type="text" id="ten" th:field="*{ten}" placeholder="Nhập họ và tên" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                                    <input type="email" id="email" th:value="${nguoiDung.email}" readonly disabled>
+                                    <small class="form-note">Email không thể thay đổi</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="soDienThoai"><i class="fas fa-phone"></i> Số điện thoại</label>
+                                    <input type="tel" id="soDienThoai" th:field="*{soDienThoai}" placeholder="Nhập số điện thoại">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="gioiTinh"><i class="fas fa-venus-mars"></i> Giới tính</label>
+                                    <select id="gioiTinh" th:field="*{gioiTinh}">
+                                        <option value="">Chọn giới tính</option>
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label for="diaChi"><i class="fas fa-map-marker-alt"></i> Địa chỉ</label>
+                                    <input type="text" id="diaChi" th:field="*{diaChi}" placeholder="Nhập địa chỉ">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="thanhPho"><i class="fas fa-city"></i> Thành phố</label>
+                                    <input type="text" id="thanhPho" th:field="*{thanhPho}" placeholder="Nhập thành phố">
+                                </div>
+
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar"></i> Ngày tạo tài khoản</label>
+                                    <input type="text" th:value="${#temporals.format(nguoiDung.ngayTao, 'dd/MM/yyyy HH:mm')}" readonly disabled>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Lưu thay đổi
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Hủy bỏ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Đổi mật khẩu Tab -->
+                    <div id="password" class="tab-content">
+                        <div class="content-header">
+                            <h2><i class="fas fa-lock"></i> Đổi mật khẩu</h2>
+                            <p>Thay đổi mật khẩu để bảo mật tài khoản của bạn</p>
+                        </div>
+
+                        <form th:action="@{/thong-tin-ca-nhan/doi-mat-khau}" method="post" class="password-form">
+                            <div class="form-group">
+                                <label for="currentPassword"><i class="fas fa-key"></i> Mật khẩu hiện tại *</label>
+                                <input type="password" id="currentPassword" name="currentPassword" placeholder="Nhập mật khẩu hiện tại" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newPassword"><i class="fas fa-lock"></i> Mật khẩu mới *</label>
+                                <input type="password" id="newPassword" name="newPassword" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)" required minlength="6">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirmPassword"><i class="fas fa-lock"></i> Xác nhận mật khẩu mới *</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu mới" required minlength="6">
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Đổi mật khẩu
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Activewear Store</h3>
+                    <p>Chuyên cung cấp quần áo thể thao chất lượng cao với giá cả hợp lý.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Danh mục</h4>
+                    <ul>
+                        <li><a href="#">Áo thun</a></li>
+                        <li><a href="#">Quần short</a></li>
+                        <li><a href="#">Giày thể thao</a></li>
+                        <li><a href="#">Phụ kiện</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ trợ</h4>
+                    <ul>
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Bảo hành</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên hệ</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> 0123 456 789</p>
+                        <p><i class="fas fa-envelope"></i> info@activewear.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Activewear Store. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const navLinks = document.querySelectorAll('.nav-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all nav links and tab contents
+                    navLinks.forEach(nl => nl.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // Add active class to clicked nav link and corresponding tab content
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Password confirmation validation
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            if (newPassword && confirmPassword) {
+                function validatePassword() {
+                    if (newPassword.value !== confirmPassword.value) {
+                        confirmPassword.setCustomValidity('Mật khẩu xác nhận không khớp');
+                    } else {
+                        confirmPassword.setCustomValidity('');
+                    }
+                }
+                
+                newPassword.addEventListener('input', validatePassword);
+                confirmPassword.addEventListener('input', validatePassword);
+            }
+
+            // Dropdown functionality
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                // Chỉ add event listener cho dropdown button, không phải toàn bộ dropdown
+                const dropdownBtn = dropdown.querySelector('.user-btn, .dropdown-toggle');
+                if (dropdownBtn) {
+                    dropdownBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Đóng tất cả dropdown khác
+                        dropdowns.forEach(otherDropdown => {
+                            if (otherDropdown !== dropdown) {
+                                otherDropdown.classList.remove('active');
+                            }
+                        });
+                        // Toggle dropdown hiện tại
+                        dropdown.classList.toggle('active');
+                    });
+                }
+            });
+
+            // Đóng dropdown khi click bên ngoài
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    // Skip if href is just "#" or empty
+                    if (href === '#' || href.length <= 1) {
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

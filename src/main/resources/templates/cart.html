@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Giỏ hàng - Activewear Store</title>
+    <link th:href="@{/css/home.css}" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
+                </div>
+                <div class="search-bar">
+                    <form th:action="@{/tim-kiem}" method="get">
+                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm...">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/gio-hang}" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        <span class="cart-count" th:if="${cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                    </a>
+                    
+                    <!-- Hiển thị khi chưa đăng nhập -->
+                    <a th:href="@{/dang-nhap}" class="login-btn" th:if="${currentUser == null or !currentUser.isAuthenticated() or currentUser.name == 'anonymousUser'}">
+                        <i class="fas fa-user"></i> Đăng nhập
+                    </a>
+                    
+                    <!-- Hiển thị khi đã đăng nhập -->
+                    <div class="user-menu" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
+                        <span class="welcome-text">Xin chào, <span th:text="${currentUser.name}">User</span></span>
+                        <div class="dropdown">
+                            <button class="user-btn">
+                                <i class="fas fa-user-circle"></i>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a th:href="@{/thong-tin-ca-nhan}"><i class="fas fa-user"></i> Thông tin cá nhân</a>
+                                <a th:href="@{/don-hang-cua-toi}"><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</a>
+                                <a th:href="@{/yeu-thich}"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <div sec:authorize="hasRole('Admin')" class="dropdown-divider"></div>
+                                <a sec:authorize="hasRole('Admin')" th:href="@{/admin/dashboard}"><i class="fas fa-cogs"></i> Quản lý Admin</a>
+                                <div class="dropdown-divider"></div>
+                                <a th:href="@{/dang-xuat}"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a th:href="@{/}">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
+                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
+                            </li>
+                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                            </li>
+                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
+                    <li><a href="#lien-he">Liên hệ</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a th:href="@{/}">Trang chủ</a>
+                <span>/</span>
+                <span>Giỏ hàng</span>
+            </div>
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <h1 class="page-title">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn
+                    </h1>
+                    <p class="page-subtitle" th:if="${cartItems != null and !cartItems.isEmpty()}">
+                        Bạn có <span th:text="${cartItemCount}">0</span> sản phẩm trong giỏ hàng
+                    </p>
+                </div>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}">Success message</span>
+            </div>
+            <div th:if="${error}" class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}">Error message</span>
+            </div>
+
+            <!-- Cart Content -->
+            <div class="cart-content" th:if="${cartItems != null and !cartItems.isEmpty()}">
+                <div class="cart-items">
+                    <div class="cart-item" th:each="item : ${cartItems}">
+                        <div class="item-image">
+                            <img th:src="${item.sanPham.anhChinh != null ? item.sanPham.anhChinh : 'https://via.placeholder.com/100x100'}" 
+                                 th:alt="${item.sanPham.ten}">
+                        </div>
+                        <div class="item-info">
+                            <h3 th:text="${item.sanPham.ten}">Tên sản phẩm</h3>
+                            <p class="item-brand" th:text="${item.sanPham.thuongHieu?.ten}">Thương hiệu</p>
+                            
+                            <!-- Biến thể sản phẩm -->
+                            <div class="item-variants" th:if="${item.kichCo != null or item.mauSac != null}">
+                                <div class="variant-info" th:if="${item.kichCo != null}">
+                                    <span class="variant-label">Kích cỡ:</span>
+                                    <span class="variant-value" th:text="${item.kichCo}">S</span>
+                                </div>
+                                <div class="variant-info" th:if="${item.mauSac != null}">
+                                    <span class="variant-label">Màu sắc:</span>
+                                    <span class="variant-value" th:text="${item.mauSac}">Đen</span>
+                                </div>
+                            </div>
+                            
+                            <div class="item-price">
+                                <span class="current-price" th:text="${#numbers.formatDecimal(item.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            </div>
+                        </div>
+                        <div class="item-quantity">
+                            <form th:action="@{/gio-hang/cap-nhat}" method="post" class="quantity-form">
+                                <input type="hidden" name="sanPhamId" th:value="${item.sanPham.id}">
+                                <div class="quantity-controls">
+                                    <button type="button" onclick="decreaseQuantity(this)">-</button>
+                                    <input type="number" name="soLuong" th:value="${item.soLuong}" min="1" th:max="${item.sanPham.soLuongTon}" class="quantity-input">
+                                    <button type="button" onclick="increaseQuantity(this)">+</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="item-total">
+                            <span class="total-price" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        </div>
+                        <div class="item-actions">
+                            <form th:action="@{/gio-hang/xoa}" method="post" class="inline-form">
+                                <input type="hidden" name="sanPhamId" th:value="${item.sanPham.id}">
+                                <button type="submit" class="btn-remove" title="Xóa sản phẩm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+                    <div class="summary-card">
+                        <h3>Tổng kết đơn hàng</h3>
+                        <div class="summary-row">
+                            <span>Tạm tính:</span>
+                            <span th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Phí vận chuyển:</span>
+                            <span>Miễn phí</span>
+                        </div>
+                        <div class="summary-divider"></div>
+                        <div class="summary-row total">
+                            <span>Tổng cộng:</span>
+                            <span th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                        </div>
+                        <div class="summary-actions">
+                            <button class="btn btn-primary btn-large">
+                                <i class="fas fa-credit-card"></i> Thanh toán
+                            </button>
+                            <a th:href="@{/}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                            </a>
+                        </div>
+                        <form th:action="@{/gio-hang/xoa-tat-ca}" method="post" class="clear-cart-form">
+                            <button type="submit" class="btn btn-outline" onclick="return confirm('Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?')">
+                                <i class="fas fa-trash-alt"></i> Xóa tất cả
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty Cart -->
+            <div class="empty-cart" th:if="${cartItems == null or cartItems.isEmpty()}">
+                <div class="empty-cart-content">
+                    <div class="empty-cart-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h2>Giỏ hàng của bạn đang trống</h2>
+                    <p>Hãy thêm các sản phẩm yêu thích vào giỏ hàng để bắt đầu mua sắm!</p>
+                    <div class="empty-cart-actions">
+                        <a th:href="@{/}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                        </a>
+                        <a th:href="@{/yeu-thich}" class="btn btn-outline" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
+                            <i class="fas fa-heart"></i> Xem yêu thích
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Activewear Store</h3>
+                    <p>Chuyên cung cấp quần áo thể thao chất lượng cao với giá cả hợp lý.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Danh mục</h4>
+                    <ul>
+                        <li><a href="#">Áo thun</a></li>
+                        <li><a href="#">Quần short</a></li>
+                        <li><a href="#">Giày thể thao</a></li>
+                        <li><a href="#">Phụ kiện</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ trợ</h4>
+                    <ul>
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Bảo hành</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên hệ</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> 0123 456 789</p>
+                        <p><i class="fas fa-envelope"></i> info@activewear.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Activewear Store. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Quantity controls
+        function increaseQuantity(button) {
+            const quantityInput = button.parentElement.querySelector('.quantity-input');
+            const max = parseInt(quantityInput.getAttribute('max'));
+            const current = parseInt(quantityInput.value);
+            if (current < max) {
+                quantityInput.value = current + 1;
+                updateQuantity(quantityInput);
+            }
+        }
+
+        function decreaseQuantity(button) {
+            const quantityInput = button.parentElement.querySelector('.quantity-input');
+            const current = parseInt(quantityInput.value);
+            if (current > 1) {
+                quantityInput.value = current - 1;
+                updateQuantity(quantityInput);
+            }
+        }
+
+        function updateQuantity(input) {
+            const form = input.closest('.quantity-form');
+            form.submit();
+        }
+
+        // Auto-submit when quantity changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+            quantityInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    updateQuantity(this);
+                });
+            });
+        });
+
+        // Dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                // Chỉ add event listener cho dropdown button, không phải toàn bộ dropdown
+                const dropdownBtn = dropdown.querySelector('.user-btn, .dropdown-toggle');
+                if (dropdownBtn) {
+                    dropdownBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Đóng tất cả dropdown khác
+                        dropdowns.forEach(otherDropdown => {
+                            if (otherDropdown !== dropdown) {
+                                otherDropdown.classList.remove('active');
+                            }
+                        });
+                        // Toggle dropdown hiện tại
+                        dropdown.classList.toggle('active');
+                    });
+                }
+            });
+
+            // Đóng dropdown khi click bên ngoài
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    // Skip if href is just "#" or empty
+                    if (href === '#' || href.length <= 1) {
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+    <style>
+
+        /* Page Header Styles */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-weight: 700;
+        }
+
+        .page-title i {
+            color: #3b82f6;
+            font-size: 2.2rem;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .page-subtitle span {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        /* Cart Items Enhancement */
+        .cart-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .cart-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .item-image img {
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .cart-item:hover .item-image img {
+            transform: scale(1.05);
+        }
+
+        /* Item Variants */
+        .item-variants {
+            margin: 10px 0;
+            padding: 8px 0;
+        }
+
+        .variant-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .variant-label {
+            color: #6b7280;
+            font-weight: 500;
+            margin-right: 8px;
+            min-width: 60px;
+        }
+
+        .variant-value {
+            color: #374151;
+            font-weight: 600;
+            background: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Summary Card Enhancement */
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+
+        .summary-card h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .summary-row {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .summary-row.total {
+            color: white;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .summary-actions .btn {
+            margin-bottom: 10px;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .summary-actions .btn-primary {
+            background: white;
+            color: #667eea;
+            border: none;
+        }
+
+        .summary-actions .btn-primary:hover {
+            background: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .summary-actions .btn-outline-danger {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .summary-actions .btn-outline-danger:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Empty Cart Enhancement */
+        .empty-cart {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            margin: 40px 0;
+        }
+
+        .empty-cart-icon {
+            margin-bottom: 30px;
+        }
+
+        .empty-cart-icon i {
+            font-size: 5rem;
+            color: #cbd5e1;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .empty-cart-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .empty-cart-actions .btn {
+            min-width: 200px;
+        }
+
+        .empty-cart-content h2 {
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .empty-cart-content p {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .empty-cart-content .btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+
+        /* Alert Enhancement */
+        .alert {
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .breadcrumb-content {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .cart-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng - Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-cogs"></i> Admin Panel</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li class="active"><a href="/admin/users"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                <li><a href="/admin/products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
+                <li><a href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
+                <li><a href="/admin/brands"><i class="fas fa-trademark"></i> Thương hiệu</a></li>
+                <li><a href="/"><i class="fas fa-home"></i> Về trang chủ</a></li>
+                <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <div class="admin-header">
+                <h1>Quản lý người dùng</h1>
+            </div>
+
+            <div class="admin-content">
+                <!-- Flash Messages -->
+                <div th:if="${success}" class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span th:text="${success}">Success message</span>
+                </div>
+                <div th:if="${error}" class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span th:text="${error}">Error message</span>
+                </div>
+
+                <!-- Search and Filters -->
+                <div class="admin-toolbar">
+                    <form method="get" class="search-form">
+                        <div class="search-box">
+                            <input type="text" name="search" th:value="${search}" placeholder="Tìm kiếm theo tên hoặc email...">
+                            <button type="submit"><i class="fas fa-search"></i></button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Users Table -->
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users.content}">
+                                <td th:text="${user.id}">1</td>
+                                <td th:text="${user.ten}">Tên người dùng</td>
+                                <td th:text="${user.email}">email@example.com</td>
+                                <td>
+                                    <form method="post" th:action="@{/admin/users/{id}/change-role(id=${user.id})}" class="inline-form">
+                                        <select name="roleId" th:onchange="this.form.submit()">
+                                            <option th:each="role : ${roles}" 
+                                                    th:value="${role.id}" 
+                                                    th:text="${role.tenVaiTro}"
+                                                    th:selected="${role.id == user.vaiTro?.id}">Role</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td>
+                                    <span th:class="'status ' + (${user.hoatDong} ? 'active' : 'inactive')" 
+                                          th:text="${user.hoatDong} ? 'Hoạt động' : 'Không hoạt động'">Hoạt động</span>
+                                </td>
+                                <td th:text="${#temporals.format(user.ngayTao, 'dd/MM/yyyy')}">01/01/2024</td>
+                                <td class="actions">
+                                    <form method="post" th:action="@{/admin/users/{id}/toggle-status(id=${user.id})}" class="inline-form">
+                                        <button type="submit" 
+                                                th:class="'btn btn-sm ' + (${user.hoatDong} ? 'btn-warning' : 'btn-success')"
+                                                th:title="${user.hoatDong} ? 'Vô hiệu hóa' : 'Kích hoạt'">
+                                            <i th:class="${user.hoatDong} ? 'fas fa-ban' : 'fas fa-check'"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div th:if="${users.totalPages > 1}" class="pagination">
+                    <a th:if="${users.hasPrevious()}" 
+                       th:href="@{/admin/users(page=${users.number - 1}, size=${users.size}, search=${search})}" 
+                       class="page-link">
+                        <i class="fas fa-chevron-left"></i> Trước
+                    </a>
+                    
+                    <span th:each="i : ${#numbers.sequence(0, users.totalPages - 1)}" 
+                          th:if="${i >= users.number - 2 and i <= users.number + 2}">
+                        <a th:if="${i != users.number}" 
+                           th:href="@{/admin/users(page=${i}, size=${users.size}, search=${search})}" 
+                           th:text="${i + 1}" 
+                           class="page-link">1</a>
+                        <span th:if="${i == users.number}" 
+                              th:text="${i + 1}" 
+                              class="page-link current">1</span>
+                    </span>
+                    
+                    <a th:if="${users.hasNext()}" 
+                       th:href="@{/admin/users(page=${users.number + 1}, size=${users.size}, search=${search})}" 
+                       class="page-link">
+                        Sau <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+
+                <div class="table-info">
+                    <p>Hiển thị <span th:text="${users.numberOfElements}">0</span> trên tổng số <span th:text="${users.totalElements}">0</span> người dùng</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
