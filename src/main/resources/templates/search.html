@@ -29,13 +29,13 @@
                     </a>
                     
                     <!-- Hiển thị khi chưa đăng nhập -->
-                    <a th:href="@{/dang-nhap}" class="login-btn" th:if="${currentUser == null or !currentUser.isAuthenticated() or currentUser.name == 'anonymousUser'}">
+                    <a th:href="@{/dang-nhap}" class="login-btn" sec:authorize="!isAuthenticated()">
                         <i class="fas fa-user"></i> Đăng nhập
                     </a>
                     
                     <!-- Hiển thị khi đã đăng nhập -->
-                    <div class="user-menu" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
-                        <span class="welcome-text">Xin chào, <span th:text="${currentUser.name}">User</span></span>
+                    <div class="user-menu" sec:authorize="isAuthenticated()">
+                        <span class="welcome-text">Xin chào, <span th:text="${user != null ? user.ten : currentUser.name}">User</span></span>
                         <div class="dropdown">
                             <button class="user-btn">
                                 <i class="fas fa-user-circle"></i>
@@ -104,21 +104,23 @@
                     <div class="product-image">
                         <img th:src="${sanPham.anhChinh != null ? sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
                              th:alt="${sanPham.ten}">
-                        <div class="product-badge" th:if="${sanPham.noiBat}">Nổi bật</div>
+                        <div class="product-badge" th:if="${sanPham.noiBat}">• NEW ARRIVAL</div>
                         <div class="product-actions">
-                            <button class="btn-icon"><i class="fas fa-heart"></i></button>
-                            <button class="btn-icon"><i class="fas fa-eye"></i></button>
+                            <button class="btn-icon" title="Lọc"><i class="fas fa-filter"></i></button>
+                            <button class="btn-icon" title="Xem nhanh"><i class="fas fa-eye"></i></button>
+                            <button class="btn-icon" title="Thêm vào giỏ"><i class="fas fa-shopping-cart"></i></button>
                         </div>
                     </div>
                     <div class="product-info">
+                        <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">THƯƠNG HIỆU</p>
                         <h3 th:text="${sanPham.ten}">Tên sản phẩm</h3>
-                        <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">Thương hiệu</p>
+                        <p class="product-code" th:text="'Nam - ' + ${sanPham.maSanPham}">Nam - SP001</p>
                         <div class="product-price">
-                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                             <span class="old-price" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}" 
-                                  th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                                  th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                         </div>
-                        <a th:href="@{'/san-pham/' + ${sanPham.id}}" class="btn-primary">Xem chi tiết</a>
+                        <div class="color-indicator" style="background-color: #000;"></div>
                     </div>
                 </div>
             </div>

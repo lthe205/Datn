@@ -1,7 +1,8 @@
 package com.example.datn.web;
 
-import com.example.datn.auth.CustomUserDetails;
+import com.example.datn.auth.AuthHelper;
 import com.example.datn.cart.CartService;
+import com.example.datn.user.NguoiDung;
 import com.example.datn.favorite.FavoriteService;
 import com.example.datn.product.SanPham;
 import com.example.datn.product.DanhMuc;
@@ -37,6 +38,9 @@ public class HomeController {
         // Truyền authentication vào model để template có thể sử dụng
         model.addAttribute("currentUser", authentication);
         
+        // Thêm thông tin user nếu đã đăng nhập
+        addUserInfoToModel(model, authentication);
+        
         // Thêm thông tin giỏ hàng nếu user đã đăng nhập
         addCartInfoToModel(model, authentication);
         
@@ -56,17 +60,13 @@ public class HomeController {
         Page<SanPham> sanPhamKhuyenMai = homeService.getSanPhamKhuyenMai(0, 8);
         model.addAttribute("sanPhamKhuyenMai", sanPhamKhuyenMai.getContent());
 
-        // Lấy danh mục cha
+        // Lấy danh mục cha cho navigation
         List<DanhMuc> danhMucCha = homeService.getDanhMucCha();
         model.addAttribute("danhMucCha", danhMucCha);
 
-        // Lấy thương hiệu
+        // Lấy thương hiệu cho navigation
         List<ThuongHieu> thuongHieu = homeService.getAllThuongHieu();
         model.addAttribute("thuongHieu", thuongHieu);
-
-        // Lấy thống kê
-        HomeService.HomeStats stats = homeService.getHomeStats();
-        model.addAttribute("stats", stats);
 
         return "index";
     }
@@ -190,11 +190,10 @@ public class HomeController {
 
         // Kiểm tra trạng thái yêu thích
         boolean isFavorite = false;
-        if (authentication != null && authentication.isAuthenticated() && 
-            !authentication.getName().equals("anonymousUser")) {
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
+        if (nguoiDung != null) {
             try {
-                CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-                isFavorite = favoriteService.isFavorite(userDetails.getDomainUser(), id);
+                isFavorite = favoriteService.isFavorite(nguoiDung, id);
             } catch (Exception e) {
                 // Nếu có lỗi, giữ isFavorite = false
             }
@@ -218,13 +217,38 @@ public class HomeController {
         return homeService.getAnhSanPham(id);
     }
 
+    @GetMapping("/lien-he")
+    public String lienHe(Model model) {
+        // Truyền authentication vào model
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        model.addAttribute("currentUser", authentication);
+        addUserInfoToModel(model, authentication);
+        addCartInfoToModel(model, authentication);
+        
+        // Thêm dữ liệu cho dropdown navigation
+        List<DanhMuc> danhMucCha = homeService.getDanhMucCha();
+        model.addAttribute("danhMucCha", danhMucCha);
+        
+        List<ThuongHieu> thuongHieu = homeService.getAllThuongHieu();
+        model.addAttribute("thuongHieu", thuongHieu);
+        
+        return "contact";
+    }
+
+    // Helper method để thêm thông tin user vào model
+    private void addUserInfoToModel(Model model, Authentication authentication) {
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
+        if (nguoiDung != null) {
+            model.addAttribute("user", nguoiDung);
+        }
+    }
+
     // Helper method để thêm thông tin giỏ hàng vào model
     private void addCartInfoToModel(Model model, Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated() && 
-            !authentication.getName().equals("anonymousUser")) {
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
+        if (nguoiDung != null) {
             try {
-                CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-                int cartItemCount = cartService.getCartItemCount(userDetails.getDomainUser());
+                int cartItemCount = cartService.getCartItemCount(nguoiDung);
                 model.addAttribute("cartItemCount", cartItemCount);
             } catch (Exception e) {
                 // Nếu có lỗi, set cartItemCount = 0

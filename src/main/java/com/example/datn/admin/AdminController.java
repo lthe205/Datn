@@ -5,6 +5,7 @@ import com.example.datn.user.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -515,6 +517,83 @@ public class AdminController {
         return "redirect:/admin/products/" + productId + "/variants";
     }
 
+    // Chart data API endpoints
+    @GetMapping("/api/chart/weekly")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getWeeklyChartData(Authentication auth) {
+        if (!isAdmin(auth)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        List<Object[]> weeklyData = adminService.getWeeklyRevenue();
+        Map<String, Object> response = new HashMap<>();
+        
+        List<String> labels = new java.util.ArrayList<>();
+        List<BigDecimal> data = new java.util.ArrayList<>();
+        
+        for (Object[] row : weeklyData) {
+            labels.add(row[0].toString());
+            data.add((BigDecimal) row[1]);
+        }
+        
+        response.put("labels", labels);
+        response.put("data", data);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/chart/monthly")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getMonthlyChartData(Authentication auth) {
+        if (!isAdmin(auth)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        List<Object[]> monthlyData = adminService.getMonthlyRevenue();
+        Map<String, Object> response = new HashMap<>();
+        
+        List<String> labels = new java.util.ArrayList<>();
+        List<BigDecimal> data = new java.util.ArrayList<>();
+        
+        String[] monthNames = {"", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                              "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"};
+        
+        for (Object[] row : monthlyData) {
+            int month = (Integer) row[0];
+            labels.add(monthNames[month]);
+            data.add((BigDecimal) row[1]);
+        }
+        
+        response.put("labels", labels);
+        response.put("data", data);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/chart/yearly")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getYearlyChartData(Authentication auth) {
+        if (!isAdmin(auth)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        List<Object[]> yearlyData = adminService.getYearlyRevenue();
+        Map<String, Object> response = new HashMap<>();
+        
+        List<String> labels = new java.util.ArrayList<>();
+        List<BigDecimal> data = new java.util.ArrayList<>();
+        
+        for (Object[] row : yearlyData) {
+            labels.add("Năm " + row[0].toString());
+            data.add((BigDecimal) row[1]);
+        }
+        
+        response.put("labels", labels);
+        response.put("data", data);
+        
+        return ResponseEntity.ok(response);
+    }
+
     // DTO for statistics
     public static class AdminStats {
         private long totalUsers;
@@ -523,6 +602,8 @@ public class AdminController {
         private long totalBrands;
         private long activeUsers;
         private long activeProducts;
+        private BigDecimal todayRevenue;
+        private BigDecimal monthRevenue;
 
         // Constructors, getters and setters
         public AdminStats() {}
@@ -534,6 +615,17 @@ public class AdminController {
             this.totalBrands = totalBrands;
             this.activeUsers = activeUsers;
             this.activeProducts = activeProducts;
+        }
+
+        public AdminStats(long totalUsers, long totalProducts, long totalCategories, long totalBrands, long activeUsers, long activeProducts, BigDecimal todayRevenue, BigDecimal monthRevenue) {
+            this.totalUsers = totalUsers;
+            this.totalProducts = totalProducts;
+            this.totalCategories = totalCategories;
+            this.totalBrands = totalBrands;
+            this.activeUsers = activeUsers;
+            this.activeProducts = activeProducts;
+            this.todayRevenue = todayRevenue;
+            this.monthRevenue = monthRevenue;
         }
 
         // Getters and setters
@@ -554,5 +646,11 @@ public class AdminController {
 
         public long getActiveProducts() { return activeProducts; }
         public void setActiveProducts(long activeProducts) { this.activeProducts = activeProducts; }
+
+        public BigDecimal getTodayRevenue() { return todayRevenue; }
+        public void setTodayRevenue(BigDecimal todayRevenue) { this.todayRevenue = todayRevenue; }
+
+        public BigDecimal getMonthRevenue() { return monthRevenue; }
+        public void setMonthRevenue(BigDecimal monthRevenue) { this.monthRevenue = monthRevenue; }
     }
 }

@@ -57,6 +57,16 @@ public class NguoiDung {
 	@Column(name = "ngay_cap_nhat")
 	private LocalDateTime ngayCapNhat;
 
+	// Google OAuth2 fields
+	@Column(name = "google_id", unique = true)
+	private String googleId;
+
+	@Column(name = "provider")
+	private String provider = "local"; // local, google
+
+	@Column(name = "avatar_url")
+	private String avatarUrl;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getTen() { return ten; }
@@ -87,4 +97,12 @@ public class NguoiDung {
 	public void setNgayTao(LocalDateTime ngayTao) { this.ngayTao = ngayTao; }
 	public LocalDateTime getNgayCapNhat() { return ngayCapNhat; }
 	public void setNgayCapNhat(LocalDateTime ngayCapNhat) { this.ngayCapNhat = ngayCapNhat; }
+	
+	// Google OAuth2 getters and setters
+	public String getGoogleId() { return googleId; }
+	public void setGoogleId(String googleId) { this.googleId = googleId; }
+	public String getProvider() { return provider; }
+	public void setProvider(String provider) { this.provider = provider; }
+	public String getAvatarUrl() { return avatarUrl; }
+	public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 } 

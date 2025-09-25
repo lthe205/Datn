@@ -154,6 +154,10 @@ body {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
+.stat-icon.revenue {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
 .stat-info h3 {
     font-size: 2rem;
     font-weight: 700;
@@ -734,6 +738,73 @@ body {
     color: #6c757d !important;
 }
 
+/* Charts Section */
+.charts-section {
+    margin: 2rem 0;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.chart-header h3 {
+    margin: 0;
+    color: #495057;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.chart-header h3 i {
+    margin-right: 0.5rem;
+    color: #007bff;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chart-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #6c757d;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.chart-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.chart-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.chart-wrapper {
+    padding: 1.5rem;
+    height: 400px;
+    position: relative;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .admin-sidebar {
@@ -759,6 +830,21 @@ body {
     
     .brands-container {
         grid-template-columns: 1fr;
+    }
+    
+    .chart-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .chart-controls {
+        justify-content: center;
+    }
+    
+    .chart-wrapper {
+        height: 300px;
+        padding: 1rem;
     }
 }
 

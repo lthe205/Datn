@@ -6,6 +6,7 @@
     <title>Admin Dashboard - Activewear Store</title>
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="admin-layout">
@@ -62,24 +63,41 @@
                     </div>
 
                     <div class="stat-card">
-                        <div class="stat-icon categories">
-                            <i class="fas fa-tags"></i>
+                        <div class="stat-icon revenue">
+                            <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 th:text="${stats.totalCategories}">0</h3>
-                            <p>Danh mục</p>
-                            <small>Tất cả danh mục</small>
+                            <h3 th:text="${#numbers.formatDecimal(stats.todayRevenue, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</h3>
+                            <p>Doanh thu hôm nay</p>
+                            <small>Hôm nay</small>
                         </div>
                     </div>
 
                     <div class="stat-card">
-                        <div class="stat-icon brands">
-                            <i class="fas fa-trademark"></i>
+                        <div class="stat-icon revenue">
+                            <i class="fas fa-chart-line"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 th:text="${stats.totalBrands}">0</h3>
-                            <p>Thương hiệu</p>
-                            <small>Tất cả thương hiệu</small>
+                            <h3 th:text="${#numbers.formatDecimal(stats.monthRevenue, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</h3>
+                            <p>Doanh thu tháng này</p>
+                            <small>Tháng hiện tại</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Charts -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-bar"></i> Biểu đồ doanh thu</h3>
+                            <div class="chart-controls">
+                                <button class="chart-btn active" data-period="weekly">Tuần</button>
+                                <button class="chart-btn" data-period="monthly">Tháng</button>
+                                <button class="chart-btn" data-period="yearly">Năm</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="revenueChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -133,5 +151,86 @@
             </div>
         </div>
     </div>
+
+    <script>
+        let revenueChart;
+        let currentPeriod = 'weekly';
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Doanh thu (₫)',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('vi-VN').format(value) + '₫';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Doanh thu: ' + new Intl.NumberFormat('vi-VN').format(context.parsed.y) + '₫';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load chart data
+        function loadChartData(period) {
+            const url = `/admin/api/chart/${period}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    revenueChart.data.labels = data.labels;
+                    revenueChart.data.datasets[0].data = data.data;
+                    revenueChart.update();
+                })
+                .catch(error => {
+                    console.error('Error loading chart data:', error);
+                });
+        }
+
+        // Chart control buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+            loadChartData('weekly');
+
+            // Chart period buttons
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    currentPeriod = this.dataset.period;
+                    loadChartData(currentPeriod);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

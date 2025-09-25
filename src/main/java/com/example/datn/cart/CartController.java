@@ -1,6 +1,6 @@
 package com.example.datn.cart;
 
-import com.example.datn.auth.CustomUserDetails;
+import com.example.datn.auth.AuthHelper;
 import com.example.datn.product.DanhMucRepository;
 import com.example.datn.product.ThuongHieuRepository;
 import com.example.datn.user.NguoiDung;
@@ -35,11 +35,15 @@ public class CartController {
 
         model.addAttribute("currentUser", authentication);
         
+        // Thêm thông tin user nếu đã đăng nhập
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
+        if (nguoiDung != null) {
+            model.addAttribute("user", nguoiDung);
+        }
+        
         // Thêm dữ liệu cho dropdown navigation
         model.addAttribute("danhMucCha", danhMucRepository.findDanhMucCha());
         model.addAttribute("thuongHieu", thuongHieuRepository.findAll());
-        
-        NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
         List<ChiTietGioHang> cartItems = cartService.getCartItems(nguoiDung);
         BigDecimal cartTotal = cartService.getCartTotal(nguoiDung);
         int cartItemCount = cartService.getCartItemCount(nguoiDung);
@@ -63,7 +67,7 @@ public class CartController {
         }
 
         try {
-            NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+            NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             cartService.addToCart(nguoiDung, sanPhamId, soLuong, kichCo, mauSac);
             redirectAttributes.addFlashAttribute("success", "Đã thêm sản phẩm vào giỏ hàng");
         } catch (Exception e) {
@@ -83,7 +87,7 @@ public class CartController {
         }
 
         try {
-            NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+            NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             cartService.updateCartItem(nguoiDung, sanPhamId, soLuong);
             redirectAttributes.addFlashAttribute("success", "Đã cập nhật giỏ hàng");
         } catch (Exception e) {
@@ -102,7 +106,7 @@ public class CartController {
         }
 
         try {
-            NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+            NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             cartService.removeFromCart(nguoiDung, sanPhamId);
             redirectAttributes.addFlashAttribute("success", "Đã xóa sản phẩm khỏi giỏ hàng");
         } catch (Exception e) {
@@ -120,7 +124,7 @@ public class CartController {
         }
 
         try {
-            NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+            NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             cartService.clearCart(nguoiDung);
             redirectAttributes.addFlashAttribute("success", "Đã xóa tất cả sản phẩm khỏi giỏ hàng");
         } catch (Exception e) {
@@ -140,7 +144,7 @@ public class CartController {
         }
 
         try {
-            NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+            NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             cartService.clearCart(nguoiDung); // Xóa giỏ hàng cũ
             cartService.addToCart(nguoiDung, sanPhamId, soLuong);
             redirectAttributes.addFlashAttribute("success", "Đã thêm sản phẩm vào giỏ hàng. Vui lòng thanh toán.");

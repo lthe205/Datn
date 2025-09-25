@@ -1,5 +1,7 @@
 package com.example.datn.config;
 
+import com.example.datn.auth.GoogleOAuth2UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -11,6 +13,9 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
+
+	@Autowired
+	private GoogleOAuth2UserService googleOAuth2UserService;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -39,6 +44,14 @@ public class SecurityConfig {
 				.defaultSuccessUrl("/", true)
 				.failureUrl("/dang-nhap?error=true")
 				.permitAll()
+			)
+			.oauth2Login(oauth2 -> oauth2
+				.loginPage("/dang-nhap")
+				.defaultSuccessUrl("/", true)
+				.failureUrl("/dang-nhap?error=true")
+				.userInfoEndpoint(userInfo -> userInfo
+					.oidcUserService(googleOAuth2UserService)
+				)
 			)
 			.logout(logout -> logout
 				.logoutUrl("/logout")

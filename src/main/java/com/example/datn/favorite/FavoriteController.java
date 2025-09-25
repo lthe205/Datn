@@ -1,6 +1,6 @@
 package com.example.datn.favorite;
 
-import com.example.datn.auth.CustomUserDetails;
+import com.example.datn.auth.AuthHelper;
 import com.example.datn.user.NguoiDung;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ public class FavoriteController {
         }
 
         try {
-            NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+            NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             boolean isFavorite = favoriteService.toggleFavorite(nguoiDung, sanPhamId);
             
             response.put("success", true);
@@ -52,11 +52,12 @@ public class FavoriteController {
             return "redirect:/dang-nhap";
         }
 
-        NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
         var favorites = favoriteService.getUserFavorites(nguoiDung);
         long favoriteCount = favoriteService.getFavoriteCount(nguoiDung);
 
         model.addAttribute("currentUser", authentication);
+        model.addAttribute("user", nguoiDung);
         model.addAttribute("favorites", favorites);
         model.addAttribute("favoriteCount", favoriteCount);
 
@@ -76,7 +77,7 @@ public class FavoriteController {
         }
 
         try {
-            NguoiDung nguoiDung = ((CustomUserDetails) authentication.getPrincipal()).getDomainUser();
+            NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             favoriteService.removeFavorite(nguoiDung, sanPhamId);
             
             response.put("success", true);

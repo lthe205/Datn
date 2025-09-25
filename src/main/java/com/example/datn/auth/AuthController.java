@@ -93,6 +93,11 @@ public class AuthController {
 		return "redirect:/login?verified";
 	}
 
+	@GetMapping("/login-success")
+	public String loginSuccess() {
+		return "redirect:/?login=success";
+	}
+
 	public static class RegisterForm {
 		@NotBlank public String ten;
 		@NotBlank @Email public String email;

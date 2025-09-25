@@ -29,13 +29,13 @@
                     </a>
                     
                     <!-- Hiển thị khi chưa đăng nhập -->
-                    <a th:href="@{/dang-nhap}" class="login-btn" th:if="${currentUser == null or !currentUser.isAuthenticated() or currentUser.name == 'anonymousUser'}">
+                    <a th:href="@{/dang-nhap}" class="login-btn" sec:authorize="!isAuthenticated()">
                         <i class="fas fa-user"></i> Đăng nhập
                     </a>
                     
                     <!-- Hiển thị khi đã đăng nhập -->
-                    <div class="user-menu" th:if="${currentUser != null and currentUser.isAuthenticated() and currentUser.name != 'anonymousUser'}">
-                        <span class="welcome-text">Xin chào, <span th:text="${currentUser.name}">User</span></span>
+                    <div class="user-menu" sec:authorize="isAuthenticated()">
+                        <span class="welcome-text">Xin chào, <span th:text="${nguoiDung != null ? nguoiDung.ten : currentUser.name}">User</span></span>
                         <div class="dropdown">
                             <button class="user-btn">
                                 <i class="fas fa-user-circle"></i>

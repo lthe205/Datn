@@ -1,6 +1,6 @@
 package com.example.datn.web;
 
-import com.example.datn.auth.CustomUserDetails;
+import com.example.datn.auth.AuthHelper;
 import com.example.datn.cart.CartService;
 import com.example.datn.product.DanhMucRepository;
 import com.example.datn.product.ThuongHieuRepository;
@@ -53,17 +53,21 @@ public class ProfileController {
         List<com.example.datn.product.ThuongHieu> thuongHieu = thuongHieuRepository.findAll();
         model.addAttribute("thuongHieu", thuongHieu);
         
-        if (authentication != null && authentication.isAuthenticated() && 
-            !"anonymousUser".equals(authentication.getName())) {
-            
-            NguoiDung nguoiDung = nguoiDungRepository.findByEmail(authentication.getName())
-                .orElse(null);
-            
-            if (nguoiDung != null) {
-                model.addAttribute("nguoiDung", nguoiDung);
-                model.addAttribute("profileForm", new ProfileUpdateForm(nguoiDung));
-                return "profile";
-            }
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
+        
+        if (nguoiDung != null) {
+            System.out.println("Debug - User found: " + nguoiDung.getTen() + " (" + nguoiDung.getEmail() + ")");
+            System.out.println("Debug - Provider: " + nguoiDung.getProvider());
+            System.out.println("Debug - Google ID: " + nguoiDung.getGoogleId());
+            System.out.println("Debug - Avatar URL: " + nguoiDung.getAvatarUrl());
+            System.out.println("Debug - Role: " + (nguoiDung.getVaiTro() != null ? nguoiDung.getVaiTro().getTenVaiTro() : "null"));
+            model.addAttribute("nguoiDung", nguoiDung);
+            model.addAttribute("profileForm", new ProfileUpdateForm(nguoiDung));
+            return "profile";
+        } else {
+            System.out.println("Debug - No user found in authentication");
+            System.out.println("Debug - Authentication: " + authentication);
+            System.out.println("Debug - Principal: " + (authentication != null ? authentication.getPrincipal() : "null"));
         }
         
         return "redirect:/dang-nhap";
@@ -75,26 +79,21 @@ public class ProfileController {
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
-        if (authentication != null && authentication.isAuthenticated() && 
-            !"anonymousUser".equals(authentication.getName())) {
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
+        
+        if (nguoiDung != null) {
+            // Cập nhật thông tin
+            nguoiDung.setTen(form.getTen());
+            nguoiDung.setSoDienThoai(form.getSoDienThoai());
+            nguoiDung.setDiaChi(form.getDiaChi());
+            nguoiDung.setThanhPho(form.getThanhPho());
+            nguoiDung.setGioiTinh(form.getGioiTinh());
+            nguoiDung.setNgayCapNhat(LocalDateTime.now());
             
-            NguoiDung nguoiDung = nguoiDungRepository.findByEmail(authentication.getName())
-                .orElse(null);
+            nguoiDungRepository.save(nguoiDung);
             
-            if (nguoiDung != null) {
-                // Cập nhật thông tin
-                nguoiDung.setTen(form.getTen());
-                nguoiDung.setSoDienThoai(form.getSoDienThoai());
-                nguoiDung.setDiaChi(form.getDiaChi());
-                nguoiDung.setThanhPho(form.getThanhPho());
-                nguoiDung.setGioiTinh(form.getGioiTinh());
-                nguoiDung.setNgayCapNhat(LocalDateTime.now());
-                
-                nguoiDungRepository.save(nguoiDung);
-                
-                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
-                return "redirect:/thong-tin-ca-nhan";
-            }
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
+            return "redirect:/thong-tin-ca-nhan";
         }
         
         return "redirect:/dang-nhap";
@@ -108,11 +107,7 @@ public class ProfileController {
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
-        if (authentication != null && authentication.isAuthenticated() && 
-            !"anonymousUser".equals(authentication.getName())) {
-            
-            NguoiDung nguoiDung = nguoiDungRepository.findByEmail(authentication.getName())
-                .orElse(null);
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
             
             if (nguoiDung != null) {
                 // Kiểm tra mật khẩu hiện tại
@@ -142,7 +137,6 @@ public class ProfileController {
                 redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công!");
                 return "redirect:/thong-tin-ca-nhan";
             }
-        }
         
         return "redirect:/dang-nhap";
     }
@@ -184,11 +178,10 @@ public class ProfileController {
 
     // Helper method để thêm thông tin giỏ hàng vào model
     private void addCartInfoToModel(Model model, Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated() &&
-            !authentication.getName().equals("anonymousUser")) {
+        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
+        if (nguoiDung != null) {
             try {
-                CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-                int cartItemCount = cartService.getCartItemCount(userDetails.getDomainUser());
+                int cartItemCount = cartService.getCartItemCount(nguoiDung);
                 model.addAttribute("cartItemCount", cartItemCount);
             } catch (Exception e) {
                 // Nếu có lỗi, set cartItemCount = 0
