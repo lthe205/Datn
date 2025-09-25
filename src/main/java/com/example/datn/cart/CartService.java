@@ -2,6 +2,7 @@ package com.example.datn.cart;
 
 import com.example.datn.product.SanPham;
 import com.example.datn.product.SanPhamRepository;
+import com.example.datn.product.TonKhoService;
 import com.example.datn.user.NguoiDung;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,9 @@ public class CartService {
 
     @Autowired
     private SanPhamRepository sanPhamRepository;
+
+    @Autowired
+    private TonKhoService tonKhoService;
 
     public GioHang getOrCreateCart(NguoiDung nguoiDung) {
         Optional<GioHang> existingCart = gioHangRepository.findByNguoiDung(nguoiDung);
@@ -46,12 +50,25 @@ public class CartService {
             throw new RuntimeException("Sản phẩm không còn hoạt động");
         }
 
+        // Kiểm tra tồn kho
+        int available = tonKhoService.getCurrentStock(sanPhamId);
+        if (soLuong == null || soLuong <= 0) soLuong = 1;
+
         GioHang gioHang = getOrCreateCart(nguoiDung);
-        
+        // Tính số lượng hiện tại trong giỏ cho cùng biến thể
+        int existingQty = chiTietGioHangRepository.findByGioHangAndSanPhamAndKichCoAndMauSac(
+                gioHang, sanPham, kichCo, mauSac
+        ).map(ChiTietGioHang::getSoLuong).orElse(0);
+
+        if (existingQty + soLuong > available) {
+            throw new RuntimeException("Số lượng tồn không đủ. Hiện còn: " + available);
+        }
+
+
         // Tìm item hiện tại với cùng sản phẩm, kích cỡ và màu sắc
         Optional<ChiTietGioHang> existingItem = chiTietGioHangRepository.findByGioHangAndSanPhamAndKichCoAndMauSac(
-            gioHang, sanPham, kichCo, mauSac);
-        
+                gioHang, sanPham, kichCo, mauSac);
+
         if (existingItem.isPresent()) {
             ChiTietGioHang chiTiet = existingItem.get();
             chiTiet.setSoLuong(chiTiet.getSoLuong() + soLuong);
@@ -68,11 +85,15 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
         Optional<ChiTietGioHang> existingItem = chiTietGioHangRepository.findByGioHangAndSanPham(gioHang, sanPham);
-        
+
         if (existingItem.isPresent()) {
             if (soLuong <= 0) {
                 chiTietGioHangRepository.delete(existingItem.get());
             } else {
+                int available = tonKhoService.getCurrentStock(sanPhamId);
+                if (soLuong > available) {
+                    throw new RuntimeException("Số lượng tồn không đủ. Hiện còn: " + available);
+                }
                 ChiTietGioHang chiTiet = existingItem.get();
                 chiTiet.setSoLuong(soLuong);
                 chiTietGioHangRepository.save(chiTiet);
