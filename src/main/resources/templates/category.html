@@ -80,7 +80,7 @@
                         </ul>
                     </li>
                     <li><a href="#khuyen-mai">Khuyến mãi</a></li>
-                    <li><a href="#lien-he">Liên hệ</a></li>
+                        <li><a th:href="@{/lien-he}">Liên hệ</a></li>
                 </ul>
             </nav>
         </div>
@@ -109,22 +109,23 @@
                         <div class="product-image">
                             <img th:src="${product.anhChinh != null ? product.anhChinh : 'https://via.placeholder.com/300x300'}" 
                                  th:alt="${product.ten}">
-                            <div class="product-overlay">
-                                <a th:href="@{/san-pham/{id}(id=${product.id})}" class="btn btn-primary">Xem chi tiết</a>
+                            <div class="product-badge" th:if="${product.noiBat}">• NEW ARRIVAL</div>
+                            <div class="product-actions">
+                                <button class="btn-icon" title="Lọc"><i class="fas fa-filter"></i></button>
+                                <button class="btn-icon" title="Xem nhanh"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon" title="Thêm vào giỏ"><i class="fas fa-shopping-cart"></i></button>
                             </div>
                         </div>
                         <div class="product-info">
+                            <p class="product-brand" th:text="${product.thuongHieu?.ten}">THƯƠNG HIỆU</p>
                             <h3 th:text="${product.ten}">Tên sản phẩm</h3>
+                            <p class="product-code" th:text="'Nam - ' + ${product.maSanPham}">Nam - SP001</p>
                             <div class="product-price">
                                 <span class="current-price" th:text="${#numbers.formatDecimal(product.gia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
-                                <span th:if="${product.giaGoc != null and product.giaGoc > product.gia}" 
-                                      class="original-price" 
+                                <span class="old-price" th:if="${product.giaGoc != null and product.giaGoc > product.gia}" 
                                       th:text="${#numbers.formatDecimal(product.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                             </div>
-                            <div class="product-meta">
-                                <span th:if="${product.thuongHieu != null}" th:text="${product.thuongHieu.ten}">Thương hiệu</span>
-                                <span th:if="${product.danhMuc != null}" th:text="${product.danhMuc.ten}">Danh mục</span>
-                            </div>
+                            <div class="color-indicator" style="background-color: #000;"></div>
                         </div>
                     </div>
                 </div>
@@ -196,14 +197,14 @@
                         <li><a href="#">Hướng dẫn mua hàng</a></li>
                         <li><a href="#">Chính sách đổi trả</a></li>
                         <li><a href="#">Bảo hành</a></li>
-                        <li><a href="#">Liên hệ</a></li>
+                        <li><a th:href="@{/lien-he}">Liên hệ</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Liên hệ</h4>
                     <div class="contact-info">
                         <p><i class="fas fa-phone"></i> 0123 456 789</p>
-                        <p><i class="fas fa-envelope"></i> info@activewear.com</p>
+                        <p><i class="fas fa-envelope"></i> datnfpolysd45@gmail.com</p>
                         <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
                     </div>
                 </div>

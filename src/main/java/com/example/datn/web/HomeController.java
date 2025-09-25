@@ -56,17 +56,13 @@ public class HomeController {
         Page<SanPham> sanPhamKhuyenMai = homeService.getSanPhamKhuyenMai(0, 8);
         model.addAttribute("sanPhamKhuyenMai", sanPhamKhuyenMai.getContent());
 
-        // Lấy danh mục cha
+        // Lấy danh mục cha cho navigation
         List<DanhMuc> danhMucCha = homeService.getDanhMucCha();
         model.addAttribute("danhMucCha", danhMucCha);
 
-        // Lấy thương hiệu
+        // Lấy thương hiệu cho navigation
         List<ThuongHieu> thuongHieu = homeService.getAllThuongHieu();
         model.addAttribute("thuongHieu", thuongHieu);
-
-        // Lấy thống kê
-        HomeService.HomeStats stats = homeService.getHomeStats();
-        model.addAttribute("stats", stats);
 
         return "index";
     }
@@ -216,6 +212,23 @@ public class HomeController {
     @ResponseBody
     public List<com.example.datn.product.AnhSanPham> getAnhSanPham(@PathVariable Long id) {
         return homeService.getAnhSanPham(id);
+    }
+
+    @GetMapping("/lien-he")
+    public String lienHe(Model model) {
+        // Truyền authentication vào model
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        model.addAttribute("currentUser", authentication);
+        addCartInfoToModel(model, authentication);
+        
+        // Thêm dữ liệu cho dropdown navigation
+        List<DanhMuc> danhMucCha = homeService.getDanhMucCha();
+        model.addAttribute("danhMucCha", danhMucCha);
+        
+        List<ThuongHieu> thuongHieu = homeService.getAllThuongHieu();
+        model.addAttribute("thuongHieu", thuongHieu);
+        
+        return "contact";
     }
 
     // Helper method để thêm thông tin giỏ hàng vào model

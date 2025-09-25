@@ -80,181 +80,90 @@
                         </ul>
                     </li>
                     <li><a href="#khuyen-mai">Khuyến mãi</a></li>
-                    <li><a href="#lien-he">Liên hệ</a></li>
+                    <li><a th:href="@{/lien-he}">Liên hệ</a></li>
                 </ul>
 		</nav>
         </div>
 	</header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h2>Thời trang thể thao cao cấp</h2>
-            <p>Khám phá bộ sưu tập quần áo thể thao mới nhất với chất lượng tuyệt vời</p>
-            <a href="#san-pham-noi-bat" class="cta-btn">Mua ngay</a>
+    <!-- Banner Slider -->
+    <section class="banner-slider">
+        <div class="slider-container">
+            <div class="slide active">
+                <img src="/images/banner/slider_1.jpg" alt="Banner 1">
+            </div>
+            <div class="slide">
+                <img src="/images/banner/slider_2.jpg" alt="Banner 2">
+            </div>
+            <div class="slide">
+                <img src="/images/banner/slider_3.jpg" alt="Banner 3">
+            </div>
+            <div class="slide">
+                <img src="/images/banner/slider_4.jpg" alt="Banner 4">
+            </div>
         </div>
-        <div class="hero-image">
-            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Activewear">
+        
+        <!-- Slider Controls -->
+        <div class="slider-controls">
+            <button class="prev-btn" onclick="changeSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="next-btn" onclick="changeSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <!-- Slider Indicators -->
+        <div class="slider-indicators">
+            <span class="indicator active" onclick="currentSlide(1)"></span>
+            <span class="indicator" onclick="currentSlide(2)"></span>
+            <span class="indicator" onclick="currentSlide(3)"></span>
+            <span class="indicator" onclick="currentSlide(4)"></span>
         </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="stats" th:if="${stats != null}">
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="container">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <h3 th:text="${stats.tongSanPham}">0</h3>
-                    <p>Sản phẩm</p>
+            <!-- Sports Categories Section -->
+            <section class="sports-categories">
+                <div class="container-content">
+                    <h2 class="sports-title">MÔN THỂ THAO YÊU THÍCH</h2>
+                    <div class="sports-container">
+                        <div class="sport-card">
+                            <div class="sport-image">
+                                <img src="/imgcarousel/season_coll_1_img.png" alt="PICKLEBALL">
+                            </div>
+                        </div>
+                        
+                        <div class="sport-card">
+                            <div class="sport-image">
+                                <img src="/imgcarousel/season_coll_2_img.png" alt="CHẠY BỘ">
+                            </div>
+                        </div>
+                        
+                        <div class="sport-card">
+                            <div class="sport-image">
+                                <img src="/imgcarousel/season_coll_3_img.png" alt="CẦU LÔNG">
+                            </div>
+                        </div>
+                        
+                        <div class="sport-card">
+                            <div class="sport-image">
+                                <img src="/imgcarousel/season_coll_4_img.png" alt="TENNIS">
+                            </div>
+                        </div>
+                        
+                        <div class="sport-card">
+                            <div class="sport-image">
+                                <img src="/imgcarousel/season_coll_5_img.png" alt="GOLF">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <h3 th:text="${stats.tongDanhMuc}">0</h3>
-                    <p>Danh mục</p>
-                </div>
-                <div class="stat-item">
-                    <h3 th:text="${stats.tongThuongHieu}">0</h3>
-                    <p>Thương hiệu</p>
-                </div>
-                <div class="stat-item">
-                    <h3>1000+</h3>
-                    <p>Khách hàng</p>
-                </div>
-            </div>
+            </section>
         </div>
-    </section>
-
-    <!-- Featured Products -->
-    <section id="san-pham-noi-bat" class="featured-products" th:if="${sanPhamNoiBat != null and !sanPhamNoiBat.isEmpty()}">
-        <div class="container">
-            <h2 class="section-title">Sản phẩm nổi bật</h2>
-            <div class="products-grid">
-                <div class="product-card" th:each="sanPham : ${sanPhamNoiBat}">
-                    <div class="product-image">
-                        <img th:src="${sanPham.anhChinh != null ? sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
-                             th:alt="${sanPham.ten}">
-                        <div class="product-badge" th:if="${sanPham.noiBat}">Nổi bật</div>
-                        <div class="product-actions">
-                            <button class="btn-icon"><i class="fas fa-heart"></i></button>
-                            <button class="btn-icon"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <h3 th:text="${sanPham.ten}">Tên sản phẩm</h3>
-                        <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">Thương hiệu</p>
-                        <div class="product-price">
-                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                            <span class="old-price" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}" 
-                                  th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                        </div>
-                        <a th:href="@{'/san-pham/' + ${sanPham.id}}" class="btn-primary">Xem chi tiết</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- New Products -->
-    <section class="new-products" th:if="${sanPhamMoiNhat != null and !sanPhamMoiNhat.isEmpty()}">
-        <div class="container">
-            <h2 class="section-title">Sản phẩm mới nhất</h2>
-            <div class="products-grid">
-                <div class="product-card" th:each="sanPham : ${sanPhamMoiNhat}">
-                    <div class="product-image">
-                        <img th:src="${sanPham.anhChinh != null ? sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
-                             th:alt="${sanPham.ten}">
-                        <div class="product-badge new">Mới</div>
-                        <div class="product-actions">
-                            <button class="btn-icon"><i class="fas fa-heart"></i></button>
-                            <button class="btn-icon"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <h3 th:text="${sanPham.ten}">Tên sản phẩm</h3>
-                        <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">Thương hiệu</p>
-                        <div class="product-price">
-                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                            <span class="old-price" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}" 
-                                  th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                        </div>
-                        <a th:href="@{'/san-pham/' + ${sanPham.id}}" class="btn-primary">Xem chi tiết</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Best Selling Products -->
-    <section class="best-selling" th:if="${sanPhamBanChayNhat != null and !sanPhamBanChayNhat.isEmpty()}">
-        <div class="container">
-            <h2 class="section-title">Sản phẩm bán chạy</h2>
-            <div class="products-grid">
-                <div class="product-card" th:each="sanPham : ${sanPhamBanChayNhat}">
-                    <div class="product-image">
-                        <img th:src="${sanPham.anhChinh != null ? sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
-                             th:alt="${sanPham.ten}">
-                        <div class="product-badge hot">Hot</div>
-                        <div class="product-actions">
-                            <button class="btn-icon"><i class="fas fa-heart"></i></button>
-                            <button class="btn-icon"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <h3 th:text="${sanPham.ten}">Tên sản phẩm</h3>
-                        <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">Thương hiệu</p>
-                        <div class="product-price">
-                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                            <span class="old-price" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}" 
-                                  th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                        </div>
-                        <a th:href="@{'/san-pham/' + ${sanPham.id}}" class="btn-primary">Xem chi tiết</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sale Products -->
-    <section id="khuyen-mai" class="sale-products" th:if="${sanPhamKhuyenMai != null and !sanPhamKhuyenMai.isEmpty()}">
-        <div class="container">
-            <h2 class="section-title">Sản phẩm khuyến mãi</h2>
-            <div class="products-grid">
-                <div class="product-card" th:each="sanPham : ${sanPhamKhuyenMai}">
-                    <div class="product-image">
-                        <img th:src="${sanPham.anhChinh != null ? sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
-                             th:alt="${sanPham.ten}">
-                        <div class="product-badge sale">Sale</div>
-                        <div class="product-actions">
-                            <button class="btn-icon"><i class="fas fa-heart"></i></button>
-                            <button class="btn-icon"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <h3 th:text="${sanPham.ten}">Tên sản phẩm</h3>
-                        <p class="product-brand" th:text="${sanPham.thuongHieu?.ten}">Thương hiệu</p>
-                        <div class="product-price">
-                            <span class="current-price" th:text="${#numbers.formatDecimal(sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                            <span class="old-price" th:if="${sanPham.giaGoc != null and sanPham.giaGoc > sanPham.gia}" 
-                                  th:text="${#numbers.formatDecimal(sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
-                        </div>
-                        <a th:href="@{'/san-pham/' + ${sanPham.id}}" class="btn-primary">Xem chi tiết</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Newsletter -->
-    <section class="newsletter">
-        <div class="container">
-            <div class="newsletter-content">
-                <h2>Đăng ký nhận tin</h2>
-                <p>Nhận thông tin về sản phẩm mới và khuyến mãi đặc biệt</p>
-                <form class="newsletter-form">
-                    <input type="email" placeholder="Nhập email của bạn">
-                    <button type="submit">Đăng ký</button>
-                </form>
-            </div>
-        </div>
-    </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -285,14 +194,14 @@
                         <li><a href="#">Hướng dẫn mua hàng</a></li>
                         <li><a href="#">Chính sách đổi trả</a></li>
                         <li><a href="#">Bảo hành</a></li>
-                        <li><a href="#">Liên hệ</a></li>
+                        <li><a th:href="@{/lien-he}">Liên hệ</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Liên hệ</h4>
                     <div class="contact-info">
                         <p><i class="fas fa-phone"></i> 0123 456 789</p>
-                        <p><i class="fas fa-envelope"></i> info@activewear.com</p>
+                        <p><i class="fas fa-envelope"></i> datnfpolysd45@gmail.com</p>
                         <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận 1, TP.HCM</p>
                     </div>
                 </div>
@@ -304,8 +213,54 @@
     </footer>
 
     <script>
-        // Mobile menu toggle
+        // Banner Slider
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const indicators = document.querySelectorAll('.indicator');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            // Remove active class from all slides and indicators
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            // Add active class to current slide and indicator
+            slides[index].classList.add('active');
+            indicators[index].classList.add('active');
+        }
+
+        function changeSlide(direction) {
+            currentSlideIndex += direction;
+            
+            if (currentSlideIndex >= totalSlides) {
+                currentSlideIndex = 0;
+            } else if (currentSlideIndex < 0) {
+                currentSlideIndex = totalSlides - 1;
+            }
+            
+            showSlide(currentSlideIndex);
+        }
+
+        function currentSlide(index) {
+            currentSlideIndex = index - 1;
+            showSlide(currentSlideIndex);
+        }
+
+        // Auto slide every 5 seconds
+        function autoSlide() {
+            changeSlide(1);
+        }
+
+
+        // Initialize slider
         document.addEventListener('DOMContentLoaded', function() {
+            // Show first slide
+            showSlide(0);
+            
+            // Start auto slide
+            setInterval(autoSlide, 5000);
+            
+            // Mobile menu toggle
             const dropdowns = document.querySelectorAll('.dropdown');
             dropdowns.forEach(dropdown => {
                 // Chỉ add event listener cho dropdown button, không phải toàn bộ dropdown
@@ -356,5 +311,143 @@
             });
         });
     </script>
+
+    <style>
+        /* Reset margins and padding */
+        body, html {
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Banner Slider Styles */
+        .banner-slider {
+            position: relative;
+            height: 600px;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            background-color: #f8f9fa;
+        }
+
+
+        /* Slider Controls */
+        .slider-controls {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 3;
+        }
+
+        .prev-btn, .next-btn {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .prev-btn:hover, .next-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        /* Slider Indicators */
+        .slider-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 3;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        .indicator:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .banner-slider {
+                height: 500px;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .slider-controls {
+                padding: 0 10px;
+            }
+
+            .prev-btn, .next-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .banner-slider {
+                height: 450px;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+
+
+    </style>
 </body>
 </html> 

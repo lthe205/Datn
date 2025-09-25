@@ -23,6 +23,12 @@ body {
 }
 
 .container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.container-content {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -371,15 +377,16 @@ body {
 
 /* Section Styles */
 .featured-products, .new-products, .best-selling, .sale-products {
-    padding: 80px 0;
+    padding: 60px 0;
+    margin-top: 40px;
 }
 
 .section-title {
     text-align: center;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
     color: #1f2937;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
     position: relative;
 }
 
@@ -395,32 +402,34 @@ body {
     border-radius: 2px;
 }
 
-/* Products Grid */
+/* Products Grid - NEW ARRIVALS Style */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 30px;
-    margin-top: 50px;
+    margin-top: 40px;
 }
 
 .product-card {
     background: white;
-    border-radius: 15px;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow: none;
     transition: all 0.3s;
     position: relative;
+    border: 1px solid #f0f0f0;
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .product-image {
     position: relative;
     overflow: hidden;
-    height: 250px;
+    height: 320px;
+    background: #f8f9fa;
 }
 
 .product-image img {
@@ -431,110 +440,168 @@ body {
 }
 
 .product-card:hover .product-image img {
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
+/* NEW ARRIVAL Badge - Orange style */
 .product-badge {
     position: absolute;
-    top: 15px;
-    left: 15px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    top: 12px;
+    right: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
     color: white;
     z-index: 2;
+    background: #ff6b35;
 }
 
 .product-badge:not(.sale):not(.hot):not(.new) {
-    background: #10b981;
+    background: #ff6b35;
 }
 
 .product-badge.sale {
-    background: #ef4444;
+    background: #ff6b35;
 }
 
 .product-badge.hot {
-    background: #f59e0b;
+    background: #ff6b35;
 }
 
 .product-badge.new {
-    background: #3b82f6;
+    background: #ff6b35;
 }
 
+/* Hover Actions - Bottom center */
 .product-card .product-actions {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     opacity: 0;
-    transform: translateX(20px);
     transition: all 0.3s;
 }
 
 .product-card:hover .product-actions {
     opacity: 1;
-    transform: translateX(0);
 }
 
 .btn-icon {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border: none;
     border-radius: 50%;
-    background: rgba(255,255,255,0.9);
-    color: #374151;
+    background: rgba(0,0,0,0.7);
+    color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s;
     backdrop-filter: blur(10px);
+    font-size: 0.8rem;
 }
 
 .btn-icon:hover {
     background: #2563eb;
-    color: white;
     transform: scale(1.1);
 }
 
 .product-info {
-    padding: 20px;
+    padding: 15px 0;
+    text-align: left;
 }
 
-.product-info h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-
+/* Brand name - Light grey, uppercase */
 .product-brand {
-    color: #6b7280;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
+    color: #999;
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    font-weight: 400;
+    letter-spacing: 0.5px;
 }
 
+/* Product name - Bold, larger */
+.product-info h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 5px;
+    line-height: 1.3;
+}
+
+/* Product code/gender - Light grey, smaller */
+.product-code {
+    color: #999;
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+/* Price - Bold, larger */
 .product-price {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 .current-price {
-    font-size: 1.3rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: #2563eb;
+    color: #000;
 }
 
 .old-price {
-    font-size: 1rem;
-    color: #9ca3af;
+    font-size: 0.85rem;
+    color: #999;
     text-decoration: line-through;
+}
+
+/* Color indicator - Small circle */
+.color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #ddd;
+}
+
+/* Responsive for NEW ARRIVALS style */
+@media (max-width: 1200px) {
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+}
+
+@media (max-width: 992px) {
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+}
+
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .product-image {
+        height: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
 }
 
 .btn-primary {
@@ -1301,6 +1368,144 @@ body {
     .item-actions {
         justify-self: center;
     }
+}
+
+/* Sports Categories Section */
+.sports-categories {
+    padding: 80px 0;
+    background: #f8fafc;
+    position: relative;
+}
+
+.sports-title {
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 60px;
+    position: relative;
+}
+
+.sports-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: #2563eb;
+    border-radius: 2px;
+}
+
+.sports-container {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 80px;
+    flex-wrap: nowrap;
+}
+
+.sport-card {
+    background: transparent;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    width: 240px;
+    flex-shrink: 0;
+}
+
+
+.sport-image {
+    position: relative;
+    height: auto;
+    overflow: hidden;
+    display: block;
+}
+
+.sport-image img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+
+/* Sports Categories Responsive */
+@media (max-width: 1600px) {
+    .sports-container {
+        gap: 70px;
+        padding: 0 60px;
+    }
+    
+    .sport-card {
+        width: 220px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .sports-container {
+        gap: 60px;
+        padding: 0 50px;
+    }
+    
+    .sport-card {
+        width: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sports-categories {
+        padding: 60px 0;
+    }
+    
+    .sports-title {
+        font-size: 1.8rem;
+        margin-bottom: 40px;
+    }
+    
+    .sports-container {
+        gap: 40px;
+        padding: 0 30px;
+        overflow-x: auto;
+        justify-content: flex-start;
+    }
+    
+    .sport-card {
+        width: 180px;
+        flex-shrink: 0;
+    }
+    
+}
+
+@media (max-width: 480px) {
+    .sports-categories {
+        padding: 40px 0;
+    }
+    
+    .sports-title {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+    }
+    
+    .sports-container {
+        gap: 30px;
+        padding: 0 20px;
+    }
+    
+    .sport-card {
+        width: 160px;
+    }
+    
 }
 
 /* Breadcrumb Styles */

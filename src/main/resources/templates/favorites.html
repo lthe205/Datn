@@ -98,12 +98,12 @@
                 </p>
             </div>
 
-            <div th:if="${favorites != null and !favorites.isEmpty()}" class="favorites-grid">
-                <div class="favorite-item" th:each="favorite : ${favorites}">
+            <div th:if="${favorites != null and !favorites.isEmpty()}" class="products-grid">
+                <div class="product-card" th:each="favorite : ${favorites}">
                     <div class="product-image">
                         <img th:src="${favorite.sanPham.anhChinh != null ? favorite.sanPham.anhChinh : 'https://via.placeholder.com/300x300'}" 
                              th:alt="${favorite.sanPham.ten}">
-                        <div class="product-badge" th:if="${favorite.sanPham.noiBat}">Nổi bật</div>
+                        <div class="product-badge" th:if="${favorite.sanPham.noiBat}">• NEW ARRIVAL</div>
                         <div class="product-actions">
                             <button class="btn-icon" onclick="removeFavorite(this)" th:data-product-id="${favorite.sanPham.id}" title="Bỏ yêu thích">
                                 <i class="fas fa-heart-broken"></i>
@@ -111,24 +111,21 @@
                             <a th:href="@{/san-pham/{id}(id=${favorite.sanPham.id})}" class="btn-icon" title="Xem chi tiết">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            <button class="btn-icon" title="Thêm vào giỏ">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="product-info">
+                        <p class="product-brand" th:text="${favorite.sanPham.thuongHieu?.ten}">THƯƠNG HIỆU</p>
                         <h3 th:text="${favorite.sanPham.ten}">Tên sản phẩm</h3>
-                        <p class="product-brand" th:text="${favorite.sanPham.thuongHieu?.ten}">Thương hiệu</p>
+                        <p class="product-code" th:text="'Nam - ' + ${favorite.sanPham.maSanPham}">Nam - SP001</p>
                         <div class="product-price">
-                            <span class="current-price" th:text="${#numbers.formatDecimal(favorite.sanPham.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            <span class="current-price" th:text="${#numbers.formatDecimal(favorite.sanPham.gia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                             <span class="old-price" th:if="${favorite.sanPham.giaGoc != null and favorite.sanPham.giaGoc > favorite.sanPham.gia}" 
-                                  th:text="${#numbers.formatDecimal(favorite.sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                                  th:text="${#numbers.formatDecimal(favorite.sanPham.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
                         </div>
-                        <div class="product-actions-bottom">
-                            <a th:href="@{/san-pham/{id}(id=${favorite.sanPham.id})}" class="btn btn-primary">
-                                <i class="fas fa-eye"></i> Xem chi tiết
-                            </a>
-                            <button class="btn btn-outline" onclick="removeFavorite(this)" th:data-product-id="${favorite.sanPham.id}">
-                                <i class="fas fa-heart-broken"></i> Bỏ yêu thích
-                            </button>
-                        </div>
+                        <div class="color-indicator" style="background-color: #000;"></div>
                     </div>
                 </div>
             </div>
