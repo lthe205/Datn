@@ -28,11 +28,13 @@ public class AdminController {
     private final DanhMucRepository danhMucRepository;
     private final ThuongHieuRepository thuongHieuRepository;
     private final BienTheSanPhamRepository bienTheSanPhamRepository;
+    private final TonKhoService tonKhoService;
 
-    public AdminController(AdminService adminService, NguoiDungRepository nguoiDungRepository, 
-                          VaiTroRepository vaiTroRepository, SanPhamRepository sanPhamRepository,
-                          DanhMucRepository danhMucRepository, ThuongHieuRepository thuongHieuRepository,
-                          BienTheSanPhamRepository bienTheSanPhamRepository) {
+    public AdminController(AdminService adminService, NguoiDungRepository nguoiDungRepository,
+                           VaiTroRepository vaiTroRepository, SanPhamRepository sanPhamRepository,
+                           DanhMucRepository danhMucRepository, ThuongHieuRepository thuongHieuRepository,
+                           BienTheSanPhamRepository bienTheSanPhamRepository,
+                           TonKhoService tonKhoService) {
         this.adminService = adminService;
         this.nguoiDungRepository = nguoiDungRepository;
         this.vaiTroRepository = vaiTroRepository;
@@ -40,6 +42,7 @@ public class AdminController {
         this.danhMucRepository = danhMucRepository;
         this.thuongHieuRepository = thuongHieuRepository;
         this.bienTheSanPhamRepository = bienTheSanPhamRepository;
+        this.tonKhoService = tonKhoService;
     }
 
     // Check if user is admin
@@ -58,22 +61,22 @@ public class AdminController {
         model.addAttribute("stats", stats);
         model.addAttribute("recentUsers", adminService.getRecentUsers(5));
         model.addAttribute("topProducts", adminService.getTopProducts(5));
-        
+
         return "admin/dashboard";
     }
 
     @GetMapping("/users")
     public String manageUsers(Model model, Authentication auth,
-                             @RequestParam(defaultValue = "0") int page,
-                             @RequestParam(defaultValue = "10") int size,
-                             @RequestParam(required = false) String search) {
+                              @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "10") int size,
+                              @RequestParam(required = false) String search) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
 
         Pageable pageable = PageRequest.of(page, size);
         Page<NguoiDung> users;
-        
+
         if (search != null && !search.trim().isEmpty()) {
             users = nguoiDungRepository.findByTenContainingOrEmailContaining(search, search, pageable);
         } else {
@@ -83,7 +86,7 @@ public class AdminController {
         model.addAttribute("users", users);
         model.addAttribute("roles", vaiTroRepository.findAll());
         model.addAttribute("search", search);
-        
+
         return "admin/users";
     }
 
@@ -99,7 +102,7 @@ public class AdminController {
                 user.setHoatDong(!user.isHoatDong());
                 user.setNgayCapNhat(LocalDateTime.now());
                 nguoiDungRepository.save(user);
-                
+
                 String status = user.isHoatDong() ? "kích hoạt" : "vô hiệu hóa";
                 redirectAttributes.addFlashAttribute("success", "Đã " + status + " tài khoản: " + user.getEmail());
             }
@@ -111,8 +114,8 @@ public class AdminController {
     }
 
     @PostMapping("/users/{id}/change-role")
-    public String changeUserRole(@PathVariable Long id, @RequestParam Long roleId, 
-                                Authentication auth, RedirectAttributes redirectAttributes) {
+    public String changeUserRole(@PathVariable Long id, @RequestParam Long roleId,
+                                 Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -120,14 +123,14 @@ public class AdminController {
         try {
             NguoiDung user = nguoiDungRepository.findById(id).orElse(null);
             VaiTro role = vaiTroRepository.findById(roleId).orElse(null);
-            
+
             if (user != null && role != null) {
                 user.setVaiTro(role);
                 user.setNgayCapNhat(LocalDateTime.now());
                 nguoiDungRepository.save(user);
-                
-                redirectAttributes.addFlashAttribute("success", 
-                    "Đã thay đổi vai trò của " + user.getEmail() + " thành " + role.getTenVaiTro());
+
+                redirectAttributes.addFlashAttribute("success",
+                        "Đã thay đổi vai trò của " + user.getEmail() + " thành " + role.getTenVaiTro());
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
@@ -138,16 +141,16 @@ public class AdminController {
 
     @GetMapping("/products")
     public String manageProducts(Model model, Authentication auth,
-                                @RequestParam(defaultValue = "0") int page,
-                                @RequestParam(defaultValue = "10") int size,
-                                @RequestParam(required = false) String search) {
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "10") int size,
+                                 @RequestParam(required = false) String search) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
 
         Pageable pageable = PageRequest.of(page, size);
         Page<SanPham> products;
-        
+
         if (search != null && !search.trim().isEmpty()) {
             products = sanPhamRepository.findByTenContainingOrMaSanPhamContaining(search, search, pageable);
         } else {
@@ -159,7 +162,7 @@ public class AdminController {
         model.addAttribute("brands", thuongHieuRepository.findAll());
         model.addAttribute("search", search);
         model.addAttribute("newProduct", new SanPham());
-        
+
         return "admin/products";
     }
 
@@ -175,7 +178,7 @@ public class AdminController {
                 product.setHoatDong(!product.getHoatDong());
                 product.setNgayCapNhat(LocalDateTime.now());
                 sanPhamRepository.save(product);
-                
+
                 String status = product.getHoatDong() ? "kích hoạt" : "ẩn";
                 redirectAttributes.addFlashAttribute("success", "Đã " + status + " sản phẩm: " + product.getTen());
             }
@@ -198,7 +201,7 @@ public class AdminController {
                 product.setNoiBat(!product.getNoiBat());
                 product.setNgayCapNhat(LocalDateTime.now());
                 sanPhamRepository.save(product);
-                
+
                 String status = product.getNoiBat() ? "đánh dấu nổi bật" : "bỏ đánh dấu nổi bật";
                 redirectAttributes.addFlashAttribute("success", "Đã " + status + " sản phẩm: " + product.getTen());
             }
@@ -211,10 +214,11 @@ public class AdminController {
 
     // Thêm sản phẩm mới
     @PostMapping("/products")
-    public String addProduct(@ModelAttribute SanPham product, 
-                            @RequestParam(required = false) Long danhMucId,
-                            @RequestParam(required = false) Long thuongHieuId,
-                            Authentication auth, RedirectAttributes redirectAttributes) {
+    public String addProduct(@ModelAttribute SanPham product,
+                             @RequestParam(required = false) Long danhMucId,
+                             @RequestParam(required = false) Long thuongHieuId,
+                             @RequestParam(required = false, defaultValue = "0") Integer soLuongTon,
+                             Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -236,11 +240,15 @@ public class AdminController {
             if (product.getDaBan() == null) product.setDaBan(0);
             if (product.getHoatDong() == null) product.setHoatDong(true);
             if (product.getNoiBat() == null) product.setNoiBat(false);
-            
+
             product.setNgayTao(LocalDateTime.now());
             product.setNgayCapNhat(LocalDateTime.now());
 
             sanPhamRepository.save(product);
+            // Ghi nhận tồn kho ban đầu nếu có
+            if (soLuongTon != null && soLuongTon > 0) {
+                tonKhoService.setStock(product.getId(), soLuongTon, "Khởi tạo số lượng tồn ban đầu");
+            }
             redirectAttributes.addFlashAttribute("success", "Đã thêm sản phẩm: " + product.getTen());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
@@ -264,17 +272,18 @@ public class AdminController {
         model.addAttribute("product", product);
         model.addAttribute("categories", danhMucRepository.findAll());
         model.addAttribute("brands", thuongHieuRepository.findAll());
-        
+
         return "admin/product-edit";
     }
 
     // Cập nhật sản phẩm - POST
     @PostMapping("/products/{id}/update")
-    public String updateProduct(@PathVariable Long id, 
-                               @ModelAttribute SanPham product,
-                               @RequestParam(required = false) Long danhMucId,
-                               @RequestParam(required = false) Long thuongHieuId,
-                               Authentication auth, RedirectAttributes redirectAttributes) {
+    public String updateProduct(@PathVariable Long id,
+                                @ModelAttribute SanPham product,
+                                @RequestParam(required = false) Long danhMucId,
+                                @RequestParam(required = false) Long thuongHieuId,
+                                @RequestParam(required = false) Integer soLuongTon,
+                                Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -292,7 +301,10 @@ public class AdminController {
             existingProduct.setGia(product.getGia());
             existingProduct.setGiaGoc(product.getGiaGoc());
             existingProduct.setAnhChinh(product.getAnhChinh());
-            existingProduct.setSoLuongTon(product.getSoLuongTon());
+            // Đồng bộ số lượng tồn nếu người quản trị nhập
+            if (soLuongTon != null) {
+                tonKhoService.setStock(existingProduct.getId(), soLuongTon, "Cập nhật tồn kho từ trang quản trị");
+            }
             existingProduct.setChatLieu(product.getChatLieu());
             existingProduct.setXuatXu(product.getXuatXu());
             existingProduct.setHoatDong(product.getHoatDong());
@@ -349,7 +361,7 @@ public class AdminController {
 
         model.addAttribute("categories", danhMucRepository.findAll());
         model.addAttribute("newCategory", new DanhMuc());
-        
+
         return "admin/categories";
     }
 
@@ -378,7 +390,7 @@ public class AdminController {
 
         model.addAttribute("brands", thuongHieuRepository.findAll());
         model.addAttribute("newBrand", new ThuongHieu());
-        
+
         return "admin/brands";
     }
 
@@ -412,7 +424,7 @@ public class AdminController {
         }
 
         List<BienTheSanPham> variants = bienTheSanPhamRepository.findBySanPhamIdAndTrangThaiTrue(id);
-        
+
         // Tạo map màu sắc
         Map<String, String> colorMap = new java.util.HashMap<>();
         colorMap.put("Đen", "#000000");
@@ -431,19 +443,93 @@ public class AdminController {
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
         model.addAttribute("colorMap", colorMap);
-        
+
         return "admin/product-variants";
+    }
+
+    // Quản lý tồn kho theo sản phẩm
+    @GetMapping("/products/{id}/stock")
+    public String manageStock(@PathVariable Long id, Model model, Authentication auth) {
+        if (!isAdmin(auth)) {
+            return "redirect:/dang-nhap";
+        }
+
+        SanPham product = sanPhamRepository.findById(id).orElse(null);
+        if (product == null) {
+            return "redirect:/admin/products";
+        }
+
+        List<TonKho> stockHistory = tonKhoService.getHistory(id);
+
+        model.addAttribute("product", product);
+        model.addAttribute("currentStock", tonKhoService.getCurrentStock(id));
+        model.addAttribute("stockHistory", stockHistory);
+        return "admin/product-stock";
+    }
+
+    @PostMapping("/products/{id}/stock/set")
+    public String setStock(@PathVariable Long id,
+                           @RequestParam("quantity") Integer quantity,
+                           @RequestParam(value = "note", required = false) String note,
+                           Authentication auth,
+                           RedirectAttributes redirectAttributes) {
+        if (!isAdmin(auth)) {
+            return "redirect:/dang-nhap";
+        }
+        try {
+            tonKhoService.setStock(id, quantity == null ? 0 : quantity, note);
+            redirectAttributes.addFlashAttribute("success", "Đã cập nhật tồn kho về " + quantity);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/products/" + id + "/stock";
+    }
+
+    @PostMapping("/products/{id}/stock/increase")
+    public String increaseStock(@PathVariable Long id,
+                                @RequestParam("amount") Integer amount,
+                                @RequestParam(value = "note", required = false) String note,
+                                Authentication auth,
+                                RedirectAttributes redirectAttributes) {
+        if (!isAdmin(auth)) {
+            return "redirect:/dang-nhap";
+        }
+        try {
+            tonKhoService.increaseStock(id, amount == null ? 0 : amount, note);
+            redirectAttributes.addFlashAttribute("success", "Đã nhập thêm " + amount + " sản phẩm");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/products/" + id + "/stock";
+    }
+
+    @PostMapping("/products/{id}/stock/decrease")
+    public String decreaseStock(@PathVariable Long id,
+                                @RequestParam("amount") Integer amount,
+                                @RequestParam(value = "note", required = false) String note,
+                                Authentication auth,
+                                RedirectAttributes redirectAttributes) {
+        if (!isAdmin(auth)) {
+            return "redirect:/dang-nhap";
+        }
+        try {
+            tonKhoService.decreaseStock(id, amount == null ? 0 : amount, note);
+            redirectAttributes.addFlashAttribute("success", "Đã xuất bớt " + amount + " sản phẩm");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/products/" + id + "/stock";
     }
 
     @PostMapping("/products/{id}/variants/add")
     public String addVariant(@PathVariable Long id,
-                            @RequestParam String kichCo,
-                            @RequestParam String mauSac,
-                            @RequestParam Integer soLuong,
-                            @RequestParam BigDecimal giaBan,
-                            @RequestParam(required = false) BigDecimal giaKhuyenMai,
-                            @RequestParam(defaultValue = "true") boolean trangThai,
-                            Authentication auth, RedirectAttributes redirectAttributes) {
+                             @RequestParam String kichCo,
+                             @RequestParam String mauSac,
+                             @RequestParam Integer soLuong,
+                             @RequestParam BigDecimal giaBan,
+                             @RequestParam(required = false) BigDecimal giaKhuyenMai,
+                             @RequestParam(defaultValue = "true") boolean trangThai,
+                             Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -472,8 +558,8 @@ public class AdminController {
     }
 
     @PostMapping("/products/{productId}/variants/{id}/toggle")
-    public String toggleVariantStatus(@PathVariable Long productId, @PathVariable Long id, 
-                                    Authentication auth, RedirectAttributes redirectAttributes) {
+    public String toggleVariantStatus(@PathVariable Long productId, @PathVariable Long id,
+                                      Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -481,10 +567,10 @@ public class AdminController {
         try {
             BienTheSanPham variant = bienTheSanPhamRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Biến thể không tồn tại"));
-            
+
             variant.setTrangThai(!variant.getTrangThai());
             bienTheSanPhamRepository.save(variant);
-            
+
             String status = variant.getTrangThai() ? "hiển thị" : "ẩn";
             redirectAttributes.addFlashAttribute("success", "Đã " + status + " biến thể: " + variant.getKichCo() + " - " + variant.getMauSac());
         } catch (Exception e) {
@@ -495,8 +581,8 @@ public class AdminController {
     }
 
     @PostMapping("/products/{productId}/variants/{id}/delete")
-    public String deleteVariant(@PathVariable Long productId, @PathVariable Long id, 
-                               Authentication auth, RedirectAttributes redirectAttributes) {
+    public String deleteVariant(@PathVariable Long productId, @PathVariable Long id,
+                                Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -504,7 +590,7 @@ public class AdminController {
         try {
             BienTheSanPham variant = bienTheSanPhamRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Biến thể không tồn tại"));
-            
+
             String variantInfo = variant.getKichCo() + " - " + variant.getMauSac();
             bienTheSanPhamRepository.delete(variant);
             redirectAttributes.addFlashAttribute("success", "Đã xóa biến thể: " + variantInfo);

@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử tồn kho - [[${product.ten}]] | Admin Panel</title>
+    <meta name="description" content="Quản lý lịch sử tồn kho sản phẩm với giao diện hiện đại, theo dõi nhập xuất và điều chỉnh số lượng tồn kho dễ dàng">
+    <meta name="keywords" content="quản lý tồn kho, lịch sử nhập xuất, admin panel, inventory management">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" th:href="@{/admin/products/{id}/stock(id=${product.id})}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #f1f5f9;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --background-light: #f8fafc;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .admin-sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .sidebar-menu li {
+            margin: 0.25rem 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 400;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .sidebar-menu .active a {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-weight: 500;
+        }
+
+        .sidebar-menu i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .admin-main {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: var(--white);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .admin-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-header .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .admin-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-color);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--background-light);
+        }
+
+        .card-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-item {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .info-item.success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        }
+
+        .info-item.warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+        }
+
+        .info-item label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .info-item .value {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+            flex-wrap: wrap;
+            padding: 1.5rem;
+            background: var(--background-light);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background: var(--white);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Table */
+        .data-table {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .table-header {
+            padding: 1.5rem 2rem;
+            background: var(--background-light);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--background-light);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tbody tr:hover {
+            background: rgba(99, 102, 241, 0.02);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+
+            .admin-content {
+                padding: 1rem;
+            }
+
+            .form-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .admin-header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Loading states */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: var(--success-color);
+        }
+
+        .badge-warning {
+            background: var(--warning-color);
+        }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <nav class="admin-sidebar">
+        <div class="sidebar-header">
+            <h3>
+                <i class="fas fa-cogs"></i>
+                Admin Panel
+            </h3>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="/admin/users"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+            <li class="active"><a href="/admin/products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
+            <li><a href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
+            <li><a href="/admin/brands"><i class="fas fa-trademark"></i> Thương hiệu</a></li>
+            <li><a href="/admin/orders"><i class="fas fa-shopping-cart"></i> Đơn hàng</a></li>
+            <li><a href="/admin/reports"><i class="fas fa-chart-bar"></i> Báo cáo</a></li>
+            <li><a href="/"><i class="fas fa-home"></i> Về trang chủ</a></li>
+            <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+        <!-- Header -->
+        <header class="admin-header">
+            <div>
+                <h1>
+                    <i class="fas fa-warehouse"></i>
+                    Lịch sử tồn kho
+                </h1>
+                <div class="breadcrumb">
+                    <span>Admin</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Sản phẩm</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span th:text="${product.ten}">Tên sản phẩm</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Tồn kho</span>
+                </div>
+            </div>
+            <a th:href="@{/admin/products}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Quay lại
+            </a>
+        </header>
+
+        <!-- Content -->
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:if="${success}" class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}">Thành công</span>
+            </div>
+            <div th:if="${error}" class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}">Lỗi</span>
+            </div>
+
+            <!-- Current Stock Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-info-circle"></i>
+                        Thông tin sản phẩm
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Mã sản phẩm</label>
+                            <div class="value" th:text="${product.maSanPham}">SP001</div>
+                        </div>
+                        <div class="info-item success">
+                            <label>Tồn hiện tại</label>
+                            <div class="value">
+                                <span th:text="${currentStock}">0</span>
+                                <small style="font-size: 1rem; font-weight: 400;">chiếc</small>
+                            </div>
+                        </div>
+                        <div class="info-item warning">
+                            <label>Giá bán</label>
+                            <div class="value" th:text="${#numbers.formatDecimal(product.gia, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Adjustment -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-edit"></i>
+                        Điều chỉnh tồn kho
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Set Stock -->
+                    <form th:action="@{/admin/products/{id}/stock/set(id=${product.id})}" method="post">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="setQuantity">
+                                    <i class="fas fa-equals"></i>
+                                    Đặt tồn bằng
+                                </label>
+                                <input type="number" id="setQuantity" name="quantity" class="form-control" min="0" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="setNote">Ghi chú</label>
+                                <input type="text" id="setNote" name="note" class="form-control" placeholder="Lý do điều chỉnh">
+                            </div>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-save"></i>
+                                Cập nhật
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Increase/Decrease Stock -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <form th:action="@{/admin/products/{id}/stock/increase(id=${product.id})}" method="post">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="increaseAmount">
+                                        <i class="fas fa-plus"></i>
+                                        Nhập thêm
+                                    </label>
+                                    <input type="number" id="increaseAmount" name="amount" class="form-control" min="1" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="increaseNote">Ghi chú</label>
+                                    <input type="text" id="increaseNote" name="note" class="form-control" placeholder="Phiếu nhập / lý do">
+                                </div>
+                                <button class="btn btn-success" type="submit">
+                                    <i class="fas fa-plus"></i>
+                                    Nhập
+                                </button>
+                            </div>
+                        </form>
+
+                        <form th:action="@{/admin/products/{id}/stock/decrease(id=${product.id})}" method="post">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="decreaseAmount">
+                                        <i class="fas fa-minus"></i>
+                                        Xuất bớt
+                                    </label>
+                                    <input type="number" id="decreaseAmount" name="amount" class="form-control" min="1" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="decreaseNote">Ghi chú</label>
+                                    <input type="text" id="decreaseNote" name="note" class="form-control" placeholder="Phiếu xuất / lý do">
+                                </div>
+                                <button class="btn btn-warning" type="submit">
+                                    <i class="fas fa-minus"></i>
+                                    Xuất
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock History Table -->
+            <div class="data-table">
+                <div class="table-header">
+                    <h3>
+                        <i class="fas fa-history"></i>
+                        Lịch sử điều chỉnh
+                    </h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th><i class="fas fa-clock"></i> Thời gian</th>
+                            <th><i class="fas fa-boxes"></i> Tồn sau</th>
+                            <th><i class="fas fa-arrow-up" style="color: var(--success-color);"></i> Nhập</th>
+                            <th><i class="fas fa-arrow-down" style="color: var(--warning-color);"></i> Xuất</th>
+                            <th><i class="fas fa-sticky-note"></i> Ghi chú</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${stockHistory}">
+                            <td th:text="${#temporals.format(r.ngayCapNhat, 'dd/MM/yyyy HH:mm')}">01/01/2025 12:00</td>
+                            <td>
+                                <span class="badge badge-success" th:text="${r.soLuongTon}">0</span>
+                            </td>
+                            <td>
+                                        <span th:if="${r.soLuongNhap > 0}"
+                                              class="badge badge-success"
+                                              th:text="'+' + ${r.soLuongNhap}">+0</span>
+                                <span th:if="${r.soLuongNhap == 0}">-</span>
+                            </td>
+                            <td>
+                                        <span th:if="${r.soLuongXuat > 0}"
+                                              class="badge badge-warning"
+                                              th:text="'-' + ${r.soLuongXuat}">-0</span>
+                                <span th:if="${r.soLuongXuat == 0}">-</span>
+                            </td>
+                            <td th:text="${r.ghiChu ?: '-'}" style="max-width: 200px; word-break: break-word;">-</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(stockHistory)}">
+                            <td colspan="5" class="empty-state">
+                                <i class="fas fa-inbox" style="font-size: 2rem; opacity: 0.5; margin-bottom: 1rem;"></i>
+                                <br>
+                                Chưa có lịch sử điều chỉnh tồn kho
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // Auto-hide alerts
+    setTimeout(function(){
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 300);
+        });
+    }, 5000);
+
+    // Form validation
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = submitBtn.getAttribute('data-original-text') || submitBtn.innerHTML;
+                }, 3000);
+            }
+        });
+    });
+
+    // Store original button text
+    document.querySelectorAll('button[type="submit"]').forEach(btn => {
+        btn.setAttribute('data-original-text', btn.innerHTML);
+    });
+
+    // Mobile sidebar toggle (if needed)
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.admin-sidebar');
+        sidebar.style.transform = sidebar.style.transform === 'translateX(0px)'
+            ? 'translateX(-100%)'
+            : 'translateX(0px)';
+    }
+</script>
+</body>
+</html>
