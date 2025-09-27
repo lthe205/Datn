@@ -2,6 +2,18 @@
 
 Dự án đồ án tốt nghiệp - Cửa hàng thời trang thể thao
 
+## 📥 Hướng dẫn Git Clone
+
+**Để chạy dự án từ Git Clone, xem hướng dẫn chi tiết tại:** [GIT_CLONE_GUIDE.md](GIT_CLONE_GUIDE.md)
+
+### 🚀 Chạy nhanh:
+```bash
+git clone https://github.com/lthe205/Datn.git
+cd Datn
+# Windows: run.bat
+# Linux/Mac: ./run.sh
+```
+
 ## Cấu trúc dự án
 
 Dự án sử dụng Spring Boot với cấu trúc truyền thống:
