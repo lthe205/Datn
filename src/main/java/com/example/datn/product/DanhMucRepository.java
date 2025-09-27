@@ -13,6 +13,9 @@ public interface DanhMucRepository extends JpaRepository<DanhMuc, Long> {
     @Query("SELECT d FROM DanhMuc d WHERE d.danhMucCha IS NULL")
     List<DanhMuc> findDanhMucCha();
 
+    // Tìm danh mục cha (Spring Data JPA method)
+    List<DanhMuc> findByDanhMucChaIsNull();
+
     // Tìm danh mục con theo danh mục cha
     @Query("SELECT d FROM DanhMuc d WHERE d.danhMucCha.id = :idCha")
     List<DanhMuc> findDanhMucCon(Long idCha);

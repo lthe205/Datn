@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -34,11 +35,13 @@ public class AdminController {
     private final ThuongHieuRepository thuongHieuRepository;
     private final BienTheSanPhamRepository bienTheSanPhamRepository;
     private final DanhMucMonTheThaoRepository danhMucMonTheThaoRepository;
+    private final AnhSanPhamRepository anhSanPhamRepository;
 
     public AdminController(AdminService adminService, NguoiDungRepository nguoiDungRepository, 
                           VaiTroRepository vaiTroRepository, SanPhamRepository sanPhamRepository,
                           DanhMucRepository danhMucRepository, ThuongHieuRepository thuongHieuRepository,
-                          BienTheSanPhamRepository bienTheSanPhamRepository, DanhMucMonTheThaoRepository danhMucMonTheThaoRepository) {
+                          BienTheSanPhamRepository bienTheSanPhamRepository, DanhMucMonTheThaoRepository danhMucMonTheThaoRepository,
+                          AnhSanPhamRepository anhSanPhamRepository) {
         this.adminService = adminService;
         this.nguoiDungRepository = nguoiDungRepository;
         this.vaiTroRepository = vaiTroRepository;
@@ -47,12 +50,34 @@ public class AdminController {
         this.thuongHieuRepository = thuongHieuRepository;
         this.bienTheSanPhamRepository = bienTheSanPhamRepository;
         this.danhMucMonTheThaoRepository = danhMucMonTheThaoRepository;
+        this.anhSanPhamRepository = anhSanPhamRepository;
     }
 
     // Check if user is admin
     private boolean isAdmin(Authentication auth) {
         if (auth == null || !auth.isAuthenticated()) return false;
         return auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_Admin"));
+    }
+
+    // Tạo mã sản phẩm tự động
+    private String generateNextProductCode() {
+        // Tìm mã sản phẩm lớn nhất có định dạng SPxxx
+        String maxCode = sanPhamRepository.findMaxProductCode();
+        
+        if (maxCode == null || maxCode.isEmpty()) {
+            return "SP001";
+        }
+        
+        // Trích xuất số từ mã hiện tại (ví dụ: SP012 -> 12)
+        String numberPart = maxCode.substring(2); // Bỏ "SP"
+        try {
+            int nextNumber = Integer.parseInt(numberPart) + 1;
+            return String.format("SP%03d", nextNumber); // SP001, SP002, SP003...
+        } catch (NumberFormatException e) {
+            // Nếu không parse được, tạo mã mới từ số lượng sản phẩm hiện tại
+            long productCount = sanPhamRepository.count();
+            return String.format("SP%03d", productCount + 1);
+        }
     }
 
     @GetMapping("/dashboard")
@@ -198,7 +223,9 @@ public class AdminController {
     public String manageProducts(Model model, Authentication auth,
                                 @RequestParam(defaultValue = "0") int page,
                                 @RequestParam(defaultValue = "10") int size,
-                                @RequestParam(required = false) String search) {
+                                @RequestParam(required = false) String search,
+                                @RequestParam(required = false) Long category,
+                                @RequestParam(required = false) Long brand) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -206,22 +233,40 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size);
         Page<SanPham> products;
         
+        // Apply filters
         if (search != null && !search.trim().isEmpty()) {
             products = sanPhamRepository.findByTenContainingOrMaSanPhamContaining(search, search, pageable);
+        } else if (category != null) {
+            products = sanPhamRepository.findByDanhMucId(category, pageable);
+        } else if (brand != null) {
+            products = sanPhamRepository.findByThuongHieuId(brand, pageable);
         } else {
             products = sanPhamRepository.findAll(pageable);
         }
 
+        // Calculate statistics
+        long activeProducts = sanPhamRepository.countByHoatDong(true);
+        long featuredProducts = sanPhamRepository.countByNoiBat(true);
+        long lowStockProducts = sanPhamRepository.countBySoLuongTonLessThanEqual(10);
+
         model.addAttribute("products", products);
         model.addAttribute("categories", danhMucRepository.findAll());
         model.addAttribute("brands", thuongHieuRepository.findAll());
+        model.addAttribute("sports", danhMucMonTheThaoRepository.findAll());
         model.addAttribute("search", search);
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("selectedBrand", brand);
         model.addAttribute("newProduct", new SanPham());
+        
+        // Statistics
+        model.addAttribute("activeProducts", activeProducts);
+        model.addAttribute("featuredProducts", featuredProducts);
+        model.addAttribute("lowStockProducts", lowStockProducts);
         
         return "admin/products";
     }
 
-    @PostMapping("/products/{id}/toggle-status")
+    @PostMapping("/products/{id}/toggle")
     public String toggleProductStatus(@PathVariable Long id, Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
@@ -235,13 +280,27 @@ public class AdminController {
                 sanPhamRepository.save(product);
                 
                 String status = product.getHoatDong() ? "kích hoạt" : "ẩn";
-                redirectAttributes.addFlashAttribute("success", "Đã " + status + " sản phẩm: " + product.getTen());
+                redirectAttributes.addFlashAttribute("successMessage", "Đã " + status + " sản phẩm: " + product.getTen());
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra: " + e.getMessage());
         }
 
         return "redirect:/admin/products";
+    }
+
+    @GetMapping("/products/export")
+    public void exportProducts(@RequestParam(required = false) String search,
+                              @RequestParam(required = false) Long category,
+                              @RequestParam(required = false) Long brand,
+                              HttpServletResponse response) throws IOException {
+        // This is a placeholder for Excel export functionality
+        // You would implement actual Excel export here
+        response.setContentType("application/vnd.ms-excel");
+        response.setHeader("Content-Disposition", "attachment; filename=products.xlsx");
+        
+        // For now, just return a simple text response
+        response.getWriter().write("Excel export functionality would be implemented here");
     }
 
     @PostMapping("/products/{id}/toggle-featured")
@@ -272,13 +331,27 @@ public class AdminController {
     public String addProduct(@ModelAttribute SanPham product, 
                             @RequestParam(required = false) Long danhMucId,
                             @RequestParam(required = false) Long thuongHieuId,
+                            @RequestParam(required = false) Long monTheThaoId,
+                            @RequestParam(required = false) MultipartFile[] productImages,
                             Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
 
         try {
-            // Set danh mục và thương hiệu
+            // Tạo mã sản phẩm tự động nếu chưa có hoặc trùng
+            if (product.getMaSanPham() == null || product.getMaSanPham().trim().isEmpty()) {
+                String nextCode = generateNextProductCode();
+                product.setMaSanPham(nextCode);
+            } else {
+                // Kiểm tra mã đã tồn tại chưa
+                if (sanPhamRepository.existsByMaSanPham(product.getMaSanPham())) {
+                    String nextCode = generateNextProductCode();
+                    product.setMaSanPham(nextCode);
+                }
+            }
+
+            // Set danh mục, thương hiệu và môn thể thao
             if (danhMucId != null) {
                 DanhMuc danhMuc = danhMucRepository.findById(danhMucId).orElse(null);
                 product.setDanhMuc(danhMuc);
@@ -286,6 +359,10 @@ public class AdminController {
             if (thuongHieuId != null) {
                 ThuongHieu thuongHieu = thuongHieuRepository.findById(thuongHieuId).orElse(null);
                 product.setThuongHieu(thuongHieu);
+            }
+            if (monTheThaoId != null) {
+                com.example.datn.sport.DanhMucMonTheThao danhMucMonTheThao = danhMucMonTheThaoRepository.findById(monTheThaoId).orElse(null);
+                product.setDanhMucMonTheThao(danhMucMonTheThao);
             }
 
             // Set các giá trị mặc định
@@ -298,13 +375,87 @@ public class AdminController {
             product.setNgayTao(LocalDateTime.now());
             product.setNgayCapNhat(LocalDateTime.now());
 
-            sanPhamRepository.save(product);
+            SanPham savedProduct = sanPhamRepository.save(product);
+            
+            // Xử lý upload ảnh sản phẩm
+            if (productImages != null && productImages.length > 0) {
+                for (int i = 0; i < productImages.length; i++) {
+                    MultipartFile file = productImages[i];
+                    if (!file.isEmpty()) {
+                        try {
+                            // Tạo tên file unique
+                            String originalFilename = file.getOriginalFilename();
+                            if (originalFilename != null) {
+                                String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                                String fileName = "product_" + savedProduct.getId() + "_" + (i + 1) + fileExtension;
+                                
+                                // Lưu file (tạm thời lưu vào thư mục uploads)
+                                String uploadDir = "uploads/products/";
+                                java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir).toAbsolutePath().normalize();
+                                if (!java.nio.file.Files.exists(uploadPath)) {
+                                    java.nio.file.Files.createDirectories(uploadPath);
+                                }
+                                
+                                java.nio.file.Path filePath = uploadPath.resolve(fileName);
+                                file.transferTo(filePath.toFile());
+                                
+                                // Lưu thông tin ảnh vào database
+                                AnhSanPham anhSanPham = new AnhSanPham();
+                                anhSanPham.setSanPham(savedProduct);
+                                anhSanPham.setUrlAnh("/uploads/products/" + fileName);
+                                anhSanPham.setThuTu(i + 1); // Ảnh đầu tiên là ảnh chính (thứ tự = 1)
+                                anhSanPham.setNgayThem(LocalDateTime.now());
+                                
+                                anhSanPhamRepository.save(anhSanPham);
+                            }
+                        } catch (Exception e) {
+                            // Log lỗi nhưng không dừng quá trình
+                            System.err.println("Lỗi upload ảnh " + (i + 1) + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+            
             redirectAttributes.addFlashAttribute("success", "Đã thêm sản phẩm: " + product.getTen());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
         }
 
         return "redirect:/admin/products";
+    }
+
+    // Xóa ảnh sản phẩm
+    @PostMapping("/products/images/{imageId}/delete")
+    @ResponseBody
+    public ResponseEntity<String> deleteProductImage(@PathVariable Long imageId, Authentication auth) {
+        if (!isAdmin(auth)) {
+            return ResponseEntity.status(403).body("Unauthorized");
+        }
+
+        try {
+            AnhSanPham image = anhSanPhamRepository.findById(imageId).orElse(null);
+            if (image == null) {
+                return ResponseEntity.status(404).body("Image not found");
+            }
+
+            // Xóa file từ filesystem
+            try {
+                String imagePath = image.getUrlAnh().substring(1); // Bỏ dấu / đầu
+                java.nio.file.Path filePath = java.nio.file.Paths.get(imagePath).toAbsolutePath().normalize();
+                if (java.nio.file.Files.exists(filePath)) {
+                    java.nio.file.Files.delete(filePath);
+                }
+            } catch (Exception e) {
+                System.err.println("Lỗi xóa file: " + e.getMessage());
+            }
+
+            // Xóa record từ database
+            anhSanPhamRepository.delete(image);
+            
+            return ResponseEntity.ok("Image deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error deleting image: " + e.getMessage());
+        }
     }
 
     // Sửa sản phẩm - GET
@@ -322,6 +473,8 @@ public class AdminController {
         model.addAttribute("product", product);
         model.addAttribute("categories", danhMucRepository.findAll());
         model.addAttribute("brands", thuongHieuRepository.findAll());
+        model.addAttribute("sports", danhMucMonTheThaoRepository.findAll());
+        model.addAttribute("productImages", anhSanPhamRepository.findBySanPhamIdOrderByThuTuAsc(id));
         
         return "admin/product-edit";
     }
@@ -332,6 +485,8 @@ public class AdminController {
                                @ModelAttribute SanPham product,
                                @RequestParam(required = false) Long danhMucId,
                                @RequestParam(required = false) Long thuongHieuId,
+                               @RequestParam(required = false) Long monTheThaoId,
+                               @RequestParam(required = false) MultipartFile[] additionalImages,
                                Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
@@ -357,7 +512,7 @@ public class AdminController {
             existingProduct.setNoiBat(product.getNoiBat());
             existingProduct.setNgayCapNhat(LocalDateTime.now());
 
-            // Set danh mục và thương hiệu
+            // Set danh mục, thương hiệu và môn thể thao
             if (danhMucId != null) {
                 DanhMuc danhMuc = danhMucRepository.findById(danhMucId).orElse(null);
                 existingProduct.setDanhMuc(danhMuc);
@@ -366,8 +521,57 @@ public class AdminController {
                 ThuongHieu thuongHieu = thuongHieuRepository.findById(thuongHieuId).orElse(null);
                 existingProduct.setThuongHieu(thuongHieu);
             }
+            if (monTheThaoId != null) {
+                com.example.datn.sport.DanhMucMonTheThao danhMucMonTheThao = danhMucMonTheThaoRepository.findById(monTheThaoId).orElse(null);
+                existingProduct.setDanhMucMonTheThao(danhMucMonTheThao);
+            } else {
+                existingProduct.setDanhMucMonTheThao(null);
+            }
 
             sanPhamRepository.save(existingProduct);
+            
+            // Xử lý thêm ảnh mới
+            if (additionalImages != null && additionalImages.length > 0) {
+                // Lấy số lượng ảnh hiện tại để tính thứ tự tiếp theo
+                Long currentImageCount = anhSanPhamRepository.countBySanPhamId(id);
+                
+                for (int i = 0; i < additionalImages.length; i++) {
+                    MultipartFile file = additionalImages[i];
+                    if (!file.isEmpty()) {
+                        try {
+                            // Tạo tên file unique
+                            String originalFilename = file.getOriginalFilename();
+                            if (originalFilename != null) {
+                                String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                                String fileName = "product_" + id + "_" + (currentImageCount + i + 1) + fileExtension;
+                                
+                                // Lưu file
+                                String uploadDir = "uploads/products/";
+                                java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir).toAbsolutePath().normalize();
+                                if (!java.nio.file.Files.exists(uploadPath)) {
+                                    java.nio.file.Files.createDirectories(uploadPath);
+                                }
+                                
+                                java.nio.file.Path filePath = uploadPath.resolve(fileName);
+                                file.transferTo(filePath.toFile());
+                                
+                                // Lưu thông tin ảnh vào database
+                                AnhSanPham anhSanPham = new AnhSanPham();
+                                anhSanPham.setSanPham(existingProduct);
+                                anhSanPham.setUrlAnh("/uploads/products/" + fileName);
+                                anhSanPham.setThuTu((int)(currentImageCount + i + 1));
+                                anhSanPham.setNgayThem(LocalDateTime.now());
+                                
+                                anhSanPhamRepository.save(anhSanPham);
+                            }
+                        } catch (Exception e) {
+                            // Log lỗi nhưng không dừng quá trình
+                            System.err.println("Lỗi upload ảnh " + (i + 1) + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+            
             redirectAttributes.addFlashAttribute("success", "Đã cập nhật sản phẩm: " + existingProduct.getTen());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
@@ -405,8 +609,21 @@ public class AdminController {
             return "redirect:/dang-nhap";
         }
 
-        model.addAttribute("categories", danhMucRepository.findAll());
+        List<DanhMuc> categories = danhMucRepository.findAll();
+        model.addAttribute("categories", categories);
         model.addAttribute("newCategory", new DanhMuc());
+        
+        // Thống kê danh mục
+        long totalCategories = danhMucRepository.count();
+        long activeCategories = totalCategories; // Tạm thời coi tất cả là active
+        long parentCategories = danhMucRepository.findByDanhMucChaIsNull().size();
+        long childCategories = totalCategories - parentCategories;
+        
+        model.addAttribute("totalCategories", totalCategories);
+        model.addAttribute("activeCategories", activeCategories);
+        model.addAttribute("parentCategories", parentCategories);
+        model.addAttribute("childCategories", childCategories);
+        model.addAttribute("parentCategoriesList", danhMucRepository.findByDanhMucChaIsNull());
         
         return "admin/categories";
     }
@@ -435,8 +652,26 @@ public class AdminController {
             return "redirect:/dang-nhap";
         }
 
-        model.addAttribute("brands", thuongHieuRepository.findAll());
+        List<ThuongHieu> brands = thuongHieuRepository.findAll();
+        model.addAttribute("brands", brands);
         model.addAttribute("newBrand", new ThuongHieu());
+        model.addAttribute("sanPhamRepository", sanPhamRepository);
+        
+        // Thống kê thương hiệu
+        long totalBrands = thuongHieuRepository.count();
+        long activeBrands = totalBrands; // Tạm thời coi tất cả là active
+        long brandsWithProducts = brands.stream()
+            .mapToLong(brand -> sanPhamRepository.countByThuongHieuId(brand.getId()))
+            .filter(count -> count > 0)
+            .count();
+        long newBrandsThisMonth = brands.stream()
+            .filter(brand -> brand.getNgayTao().isAfter(LocalDateTime.now().minusMonths(1)))
+            .count();
+        
+        model.addAttribute("totalBrands", totalBrands);
+        model.addAttribute("activeBrands", activeBrands);
+        model.addAttribute("brandsWithProducts", brandsWithProducts);
+        model.addAttribute("newBrandsThisMonth", newBrandsThisMonth);
         
         return "admin/brands";
     }

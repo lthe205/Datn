@@ -6,6 +6,7 @@
     <title>Quản lý biến thể sản phẩm - Admin</title>
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="admin-layout">
@@ -30,7 +31,7 @@
         <!-- Main Content -->
         <div class="admin-main">
             <div class="admin-header">
-                <h1>Quản lý biến thể sản phẩm</h1>
+                <h1><i class="fas fa-layer-group"></i> Quản lý Biến thể Sản phẩm</h1>
                 <div class="admin-user">
                     <span th:if="${#authentication.principal instanceof T(com.example.datn.auth.CustomUserDetails)}">
                         Xin chào, <strong th:text="${#authentication.principal.domainUser.ten}">Admin</strong>
@@ -57,13 +58,13 @@
                 </div>
 
                 <!-- Flash Messages -->
-                <div th:if="${success}" class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    <span th:text="${success}">Success message</span>
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div th:if="${error}" class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span th:text="${error}">Error message</span>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
                 <!-- Add Variant Form -->
@@ -263,5 +264,6 @@
             background-color: #f57c00;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -6,6 +6,7 @@
     <title>Quản lý Banner - Admin Panel</title>
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="admin-layout">
@@ -40,210 +41,918 @@
 
             <div class="admin-content">
                 <!-- Messages -->
-                <div th:if="${successMessage}" class="alert alert-success">
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
                     <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div th:if="${errorMessage}" class="alert alert-error">
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
                 <!-- Actions -->
                 <div class="admin-actions">
-                    <a href="/admin/banners/add" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Thêm Banner
-                    </a>
-                    
-                    <!-- Search -->
-                    <form class="search-form" method="get">
-                        <div class="search-input">
-                            <input type="text" name="search" th:value="${search}" placeholder="Tìm kiếm banner...">
-                            <button type="submit"><i class="fas fa-search"></i></button>
+                    <div class="actions-left">
+                        <a href="/admin/banners/add" class="btn btn-primary btn-modern">
+                            <i class="fas fa-plus"></i> 
+                            <span>Thêm Banner</span>
+                        </a>
+                        
+                        <div class="action-stats">
+                            <span class="stats-text">
+                                <i class="fas fa-chart-bar"></i>
+                                <span th:text="${#lists.size(banners)}">0</span> banner
+                            </span>
                         </div>
-                    </form>
+                    </div>
+                    
+                    <div class="actions-right">
+                        <!-- Search -->
+                        <form class="search-form-modern" method="get">
+                            <div class="search-container">
+                                <div class="search-input-modern">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" name="search" th:value="${search}" placeholder="Tìm kiếm banner..." class="search-field">
+                                    <button type="button" class="clear-search" th:if="${search != null && !#strings.isEmpty(search)}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <button type="submit" class="search-btn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Filter Options -->
+                        <div class="filter-dropdown">
+                            <button class="filter-btn" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-filter"></i>
+                                <span>Bộ lọc</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?status=active">Chỉ hiển thị hoạt động</a></li>
+                                <li><a class="dropdown-item" href="?status=inactive">Chỉ hiển thị tạm dừng</a></li>
+                                <li><a class="dropdown-item" href="?position=header">Vị trí Header</a></li>
+                                <li><a class="dropdown-item" href="?position=main">Vị trí Main</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="?">Tất cả banner</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Banner List -->
-                <div class="table-container">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Hình ảnh</th>
-                                <th>Tên Banner</th>
-                                <th>Vị trí</th>
-                                <th>Thứ tự</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="banner : ${banners}">
-                                <td>
-                                    <div class="banner-preview">
-                                        <img th:src="${banner.hinhAnh}" th:alt="${banner.ten}" class="preview-image">
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="banner-info">
-                                        <strong th:text="${banner.ten}"></strong>
-                                        <small th:if="${banner.moTa}" th:text="${banner.moTa}" class="text-muted"></small>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge badge-info" th:text="${banner.viTri}"></span>
-                                </td>
-                                <td>
-                                    <span th:text="${banner.thuTu}"></span>
-                                </td>
-                                <td>
-                                    <span th:if="${banner.hoatDong}" class="badge badge-success">
-                                        <i class="fas fa-check"></i> Hoạt động
+                <!-- Banner Grid -->
+                <div class="banner-grid" th:if="${!#lists.isEmpty(banners)}">
+                    <div class="banner-card" th:each="banner : ${banners}">
+                        <div class="banner-image-container">
+                            <img th:src="${banner.hinhAnh}" th:alt="${banner.ten}" class="banner-image">
+                            <div class="banner-overlay">
+                                <div class="banner-status">
+                                    <span th:if="${banner.hoatDong}" class="status-badge active">
+                                        <i class="fas fa-check-circle"></i> Hoạt động
                                     </span>
-                                    <span th:unless="${banner.hoatDong}" class="badge badge-danger">
-                                        <i class="fas fa-times"></i> Tạm dừng
+                                    <span th:unless="${banner.hoatDong}" class="status-badge inactive">
+                                        <i class="fas fa-pause-circle"></i> Tạm dừng
                                     </span>
-                                </td>
-                                <td th:text="${#temporals.format(banner.ngayTao, 'dd/MM/yyyy HH:mm')}"></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a th:href="@{/admin/banners/edit/{id}(id=${banner.id})}" class="btn btn-sm btn-warning" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form th:action="@{/admin/banners/toggle/{id}(id=${banner.id})}" method="post" class="inline-form">
-                                            <button type="submit" class="btn btn-sm btn-info" title="Toggle trạng thái">
-                                                <i class="fas fa-toggle-on" th:if="${banner.hoatDong}"></i>
-                                                <i class="fas fa-toggle-off" th:unless="${banner.hoatDong}"></i>
-                                            </button>
-                                        </form>
-                                        <form th:action="@{/admin/banners/delete/{id}(id=${banner.id})}" method="post" class="inline-form" 
-                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa banner này?')">
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(banners)}">
-                                <td colspan="7" class="text-center">
-                                    <div class="empty-state">
-                                        <i class="fas fa-image fa-3x"></i>
-                                        <p>Chưa có banner nào</p>
-                                        <a href="/admin/banners/add" class="btn btn-primary">Thêm banner đầu tiên</a>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="banner-content">
+                            <div class="banner-header">
+                                <h3 th:text="${banner.ten}" class="banner-title"></h3>
+                                <div class="banner-meta">
+                                    <span class="position-badge" th:text="${banner.viTri}"></span>
+                                    <span class="order-number" th:text="'#' + ${banner.thuTu}"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="banner-description" th:if="${banner.moTa}">
+                                <p th:text="${banner.moTa}"></p>
+                            </div>
+                            
+                            <div class="banner-footer">
+                                <div class="banner-date">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span th:text="${#temporals.format(banner.ngayTao, 'dd/MM/yyyy')}"></span>
+                                </div>
+                                
+                                <div class="banner-actions">
+                                    <a th:href="@{/admin/banners/edit/{id}(id=${banner.id})}" class="action-btn edit-btn" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form th:action="@{/admin/banners/toggle/{id}(id=${banner.id})}" method="post" class="inline-form">
+                                        <button type="submit" class="action-btn toggle-btn" title="Bật/Tắt">
+                                            <i class="fas fa-toggle-on" th:if="${banner.hoatDong}"></i>
+                                            <i class="fas fa-toggle-off" th:unless="${banner.hoatDong}"></i>
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/admin/banners/delete/{id}(id=${banner.id})}" method="post" class="inline-form" 
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa banner này?')">
+                                        <button type="submit" class="action-btn delete-btn" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(banners)}" class="empty-state">
+                    <div class="empty-content">
+                        <div class="empty-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <h3>Chưa có banner nào</h3>
+                        <p>Hãy thêm banner đầu tiên để bắt đầu quản lý</p>
+                        <a href="/admin/banners/add" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus"></i> Thêm banner đầu tiên
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <style>
-        .banner-preview {
-            width: 60px;
-            height: 40px;
-            overflow: hidden;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
+        /* Banner Grid Layout */
+        .banner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
         }
         
-        .preview-image {
+        /* Banner Card */
+        .banner-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+        }
+        
+        .banner-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Banner Image Container */
+        .banner-image-container {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .banner-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
         }
         
-        .banner-info {
-            max-width: 200px;
+        .banner-card:hover .banner-image {
+            transform: scale(1.05);
         }
         
-        .banner-info strong {
-            display: block;
-            margin-bottom: 4px;
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding: 1rem;
         }
         
-        .banner-info small {
-            display: block;
-            color: #64748b;
-            font-size: 12px;
+        .banner-status {
+            z-index: 2;
         }
         
-        .badge {
-            padding: 4px 8px;
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge.active {
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+        }
+        
+        .status-badge.inactive {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+        
+        /* Banner Content */
+        .banner-content {
+            padding: 1.5rem;
+        }
+        
+        .banner-header {
+            margin-bottom: 1rem;
+        }
+        
+        .banner-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 0.75rem 0;
+            line-height: 1.3;
+        }
+        
+        .banner-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .position-badge {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 0.375rem 0.875rem;
             border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
         }
         
-        .badge-success {
-            background-color: #dcfce7;
-            color: #166534;
+        .order-number {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 0.375rem 0.875rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
         
-        .badge-danger {
-            background-color: #fef2f2;
-            color: #dc2626;
+        .banner-description {
+            margin-bottom: 1.5rem;
         }
         
-        .badge-info {
-            background-color: #dbeafe;
+        .banner-description p {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Banner Footer */
+        .banner-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+        
+        .banner-date {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        
+        .banner-date i {
+            color: #94a3b8;
+        }
+        
+        .banner-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        
+        .edit-btn {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .edit-btn:hover {
+            background: #fde68a;
+            color: #b45309;
+        }
+        
+        .toggle-btn {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .toggle-btn:hover {
+            background: #bfdbfe;
             color: #1d4ed8;
         }
         
-        .action-buttons {
-            display: flex;
-            gap: 4px;
+        .delete-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .delete-btn:hover {
+            background: #fecaca;
+            color: #b91c1c;
         }
         
         .inline-form {
             display: inline;
         }
         
+        /* Empty State */
         .empty-state {
-            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            padding: 3rem;
+        }
+        
+        .empty-content {
             text-align: center;
+            max-width: 400px;
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 2rem;
+            color: #94a3b8;
+        }
+        
+        .empty-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+        }
+        
+        .empty-content p {
             color: #64748b;
+            margin-bottom: 2rem;
+            line-height: 1.6;
         }
         
-        .empty-state i {
-            margin-bottom: 16px;
-            color: #cbd5e1;
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
         }
         
-        .search-form {
-            margin-left: auto;
+        /* Admin Actions */
+        .admin-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+            border: 1px solid #f1f5f9;
         }
         
-        .search-input {
+        .actions-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .actions-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Modern Button */
+        .btn-modern {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-modern:hover::before {
+            left: 100%;
+        }
+        
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-modern i {
+            font-size: 1rem;
+        }
+        
+        /* Action Stats */
+        .action-stats {
+            background: #f8fafc;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stats-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .stats-text i {
+            color: #3b82f6;
+        }
+        
+        /* Modern Search Form */
+        .search-form-modern {
+            position: relative;
+        }
+        
+        .search-container {
             display: flex;
             align-items: center;
             background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px 12px;
-            width: 300px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
         
-        .search-input input {
+        .search-container:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        .search-input-modern {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            padding: 0.75rem 1rem;
+            position: relative;
+        }
+        
+        .search-icon {
+            color: #94a3b8;
+            margin-right: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .search-field {
             border: none;
             outline: none;
             flex: 1;
-            font-size: 14px;
+            font-size: 0.9rem;
+            color: #1e293b;
+            background: transparent;
         }
         
-        .search-input button {
+        .search-field::placeholder {
+            color: #94a3b8;
+        }
+        
+        .clear-search {
             background: none;
             border: none;
-            color: #64748b;
+            color: #94a3b8;
             cursor: pointer;
-            padding: 4px;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            margin-left: 0.5rem;
         }
         
-        .search-input button:hover {
-            color: #2563eb;
+        .clear-search:hover {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        
+        .search-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-btn:hover {
+            background: #2563eb;
+        }
+        
+        /* Filter Dropdown */
+        .filter-dropdown {
+            position: relative;
+        }
+        
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .filter-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-btn i {
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-menu {
+            min-width: 200px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: block;
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: #3b82f6;
+        }
+        
+        .dropdown-divider {
+            margin: 0.5rem 0;
+            border-color: #e2e8f0;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .banner-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .banner-image-container {
+                height: 180px;
+            }
+            
+            .banner-content {
+                padding: 1.25rem;
+            }
+            
+            .banner-title {
+                font-size: 1.1rem;
+            }
+            
+            .banner-meta {
+                gap: 0.75rem;
+            }
+            
+            .banner-footer {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .banner-actions {
+                justify-content: center;
+            }
+            
+            /* Admin Actions Mobile */
+            .admin-actions {
+                flex-direction: column;
+                gap: 1.5rem;
+                padding: 1.5rem;
+            }
+            
+            .actions-left {
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+            }
+            
+            .actions-right {
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+            }
+            
+            .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .action-stats {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .search-container {
+                width: 100%;
+            }
+            
+            .filter-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .banner-grid {
+                gap: 1rem;
+            }
+            
+            .banner-card {
+                border-radius: 12px;
+            }
+            
+            .banner-image-container {
+                height: 160px;
+            }
+            
+            .banner-content {
+                padding: 1rem;
+            }
+            
+            .empty-state {
+                padding: 2rem 1rem;
+            }
+            
+            .empty-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Clear search functionality
+            const clearSearchBtn = document.querySelector('.clear-search');
+            const searchField = document.querySelector('.search-field');
+            
+            if (clearSearchBtn && searchField) {
+                clearSearchBtn.addEventListener('click', function() {
+                    searchField.value = '';
+                    searchField.focus();
+                    // Optionally submit the form to clear results
+                    const form = document.querySelector('.search-form-modern');
+                    if (form) {
+                        form.submit();
+                    }
+                });
+            }
+            
+            // Search field enhancements
+            if (searchField) {
+                // Auto-focus search field when pressing Ctrl+K or Cmd+K
+                document.addEventListener('keydown', function(e) {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                        e.preventDefault();
+                        searchField.focus();
+                    }
+                });
+                
+                // Show/hide clear button based on input
+                searchField.addEventListener('input', function() {
+                    const clearBtn = document.querySelector('.clear-search');
+                    if (clearBtn) {
+                        if (this.value.length > 0) {
+                            clearBtn.style.display = 'block';
+                        } else {
+                            clearBtn.style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            // Filter dropdown enhancements
+            const filterBtn = document.querySelector('.filter-btn');
+            const dropdownItems = document.querySelectorAll('.dropdown-item');
+            
+            dropdownItems.forEach(function(item) {
+                item.addEventListener('click', function(e) {
+                    // Add loading state
+                    const originalText = this.textContent;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
+                    
+                    // Remove loading state after a short delay (simulate loading)
+                    setTimeout(function() {
+                        item.innerHTML = originalText;
+                    }, 500);
+                });
+            });
+            
+            // Button hover effects
+            const modernBtn = document.querySelector('.btn-modern');
+            if (modernBtn) {
+                modernBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                modernBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            }
+            
+            // Stats animation
+            const statsNumber = document.querySelector('.stats-text span');
+            if (statsNumber) {
+                const finalNumber = parseInt(statsNumber.textContent);
+                let currentNumber = 0;
+                const increment = Math.ceil(finalNumber / 20);
+                
+                const counter = setInterval(function() {
+                    currentNumber += increment;
+                    if (currentNumber >= finalNumber) {
+                        currentNumber = finalNumber;
+                        clearInterval(counter);
+                    }
+                    statsNumber.textContent = currentNumber;
+                }, 50);
+            }
+            
+            // Search suggestions (optional enhancement)
+            const searchSuggestions = [
+                'Banner header',
+                'Banner main',
+                'Banner sidebar',
+                'Banner footer',
+                'Hoạt động',
+                'Tạm dừng'
+            ];
+            
+            if (searchField) {
+                let suggestionBox = null;
+                
+                searchField.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    if (query.length > 0) {
+                        const matches = searchSuggestions.filter(suggestion => 
+                            suggestion.toLowerCase().includes(query)
+                        );
+                        
+                        if (matches.length > 0) {
+                            showSuggestions(matches);
+                        } else {
+                            hideSuggestions();
+                        }
+                    } else {
+                        hideSuggestions();
+                    }
+                });
+                
+                function showSuggestions(suggestions) {
+                    hideSuggestions();
+                    
+                    suggestionBox = document.createElement('div');
+                    suggestionBox.className = 'search-suggestions';
+                    suggestionBox.style.cssText = `
+                        position: absolute;
+                        top: 100%;
+                        left: 0;
+                        right: 0;
+                        background: white;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        z-index: 1000;
+                        max-height: 200px;
+                        overflow-y: auto;
+                    `;
+                    
+                    suggestions.forEach(function(suggestion) {
+                        const item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        item.style.cssText = `
+                            padding: 0.75rem 1rem;
+                            cursor: pointer;
+                            border-bottom: 1px solid #f1f5f9;
+                            transition: background-color 0.2s;
+                        `;
+                        item.textContent = suggestion;
+                        
+                        item.addEventListener('click', function() {
+                            searchField.value = suggestion;
+                            hideSuggestions();
+                            searchField.focus();
+                        });
+                        
+                        item.addEventListener('mouseenter', function() {
+                            this.style.backgroundColor = '#f8fafc';
+                        });
+                        
+                        item.addEventListener('mouseleave', function() {
+                            this.style.backgroundColor = 'transparent';
+                        });
+                        
+                        suggestionBox.appendChild(item);
+                    });
+                    
+                    const searchContainer = document.querySelector('.search-form-modern');
+                    if (searchContainer) {
+                        searchContainer.style.position = 'relative';
+                        searchContainer.appendChild(suggestionBox);
+                    }
+                }
+                
+                function hideSuggestions() {
+                    if (suggestionBox) {
+                        suggestionBox.remove();
+                        suggestionBox = null;
+                    }
+                }
+                
+                // Hide suggestions when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.search-form-modern')) {
+                        hideSuggestions();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

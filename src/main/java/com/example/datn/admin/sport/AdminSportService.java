@@ -49,9 +49,19 @@ public class AdminSportService {
      */
     public DanhMucMonTheThao saveSport(DanhMucMonTheThao sport) {
         if (sport.getId() == null) {
+            // Tạo mới
             sport.setNgayTao(LocalDateTime.now());
+            sport.setNgayCapNhat(LocalDateTime.now());
+        } else {
+            // Cập nhật - giữ nguyên ngayTao cũ
+            DanhMucMonTheThao existingSport = danhMucMonTheThaoRepository.findById(sport.getId()).orElse(null);
+            if (existingSport != null) {
+                sport.setNgayTao(existingSport.getNgayTao()); // Giữ nguyên ngày tạo
+            } else {
+                sport.setNgayTao(LocalDateTime.now()); // Fallback nếu không tìm thấy
+            }
+            sport.setNgayCapNhat(LocalDateTime.now());
         }
-        sport.setNgayCapNhat(LocalDateTime.now());
         return danhMucMonTheThaoRepository.save(sport);
     }
     
@@ -130,5 +140,27 @@ public class AdminSportService {
      */
     public List<DanhMucMonTheThao> getActiveSports() {
         return danhMucMonTheThaoRepository.findByHoatDong(true);
+    }
+    
+    /**
+     * Thống kê môn thể thao
+     */
+    public long getTotalSports() {
+        return danhMucMonTheThaoRepository.count();
+    }
+    
+    public long getActiveSportsCount() {
+        return danhMucMonTheThaoRepository.findByHoatDong(true).size();
+    }
+    
+    public long getInactiveSports() {
+        return danhMucMonTheThaoRepository.findByHoatDong(false).size();
+    }
+    
+    public long getNewSportsThisMonth() {
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+        return danhMucMonTheThaoRepository.findAll().stream()
+            .filter(sport -> sport.getNgayTao().isAfter(oneMonthAgo))
+            .count();
     }
 }

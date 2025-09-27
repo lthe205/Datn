@@ -55,6 +55,10 @@ public class SanPham {
     @JoinColumn(name = "id_thuong_hieu")
     private ThuongHieu thuongHieu;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_mon_the_thao")
+    private com.example.datn.sport.DanhMucMonTheThao danhMucMonTheThao;
+
     @Column(name = "hoat_dong")
     private Boolean hoatDong;
 
@@ -119,6 +123,8 @@ public class SanPham {
     public void setDanhMuc(DanhMuc danhMuc) { this.danhMuc = danhMuc; }
     public ThuongHieu getThuongHieu() { return thuongHieu; }
     public void setThuongHieu(ThuongHieu thuongHieu) { this.thuongHieu = thuongHieu; }
+    public com.example.datn.sport.DanhMucMonTheThao getDanhMucMonTheThao() { return danhMucMonTheThao; }
+    public void setDanhMucMonTheThao(com.example.datn.sport.DanhMucMonTheThao danhMucMonTheThao) { this.danhMucMonTheThao = danhMucMonTheThao; }
     public Boolean getHoatDong() { return hoatDong; }
     public void setHoatDong(Boolean hoatDong) { this.hoatDong = hoatDong; }
     public Boolean getNoiBat() { return noiBat; }

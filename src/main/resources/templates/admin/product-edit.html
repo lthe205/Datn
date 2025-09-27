@@ -6,6 +6,7 @@
     <title>Sửa sản phẩm - Admin</title>
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="admin-layout">
@@ -30,7 +31,7 @@
         <!-- Main Content -->
         <div class="admin-main">
             <div class="admin-header">
-                <h1>Sửa sản phẩm</h1>
+                <h1><i class="fas fa-edit"></i> Sửa Sản phẩm</h1>
                 <div class="admin-user">
                     <span th:if="${#authentication.principal instanceof T(com.example.datn.auth.CustomUserDetails)}">
                         Xin chào, <strong th:text="${#authentication.principal.domainUser.ten}">Admin</strong>
@@ -43,19 +44,19 @@
 
             <div class="admin-content">
                 <!-- Success/Error Messages -->
-                <div th:if="${success}" class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    <span th:text="${success}">Success message</span>
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div th:if="${error}" class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span th:text="${error}">Error message</span>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
                 <!-- Edit Product Form -->
                 <div class="form-card">
                     <h3><i class="fas fa-edit"></i> Chỉnh sửa sản phẩm</h3>
-                    <form th:action="@{/admin/products/{id}/update(id=${product.id})}" method="post" th:object="${product}">
+                    <form th:action="@{/admin/products/{id}/update(id=${product.id})}" method="post" th:object="${product}" enctype="multipart/form-data">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="maSanPham">Mã sản phẩm:</label>
@@ -73,11 +74,13 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="gia">Giá bán:</label>
-                                <input type="number" id="gia" th:field="*{gia}" step="0.01" min="0" required>
+                                <input type="number" id="gia" th:field="*{gia}" step="0.01" min="0" max="999999999999999.99" required>
+                                <small class="form-text text-muted">Giá tối đa: 999,999,999,999,999.99 VNĐ</small>
                             </div>
                             <div class="form-group">
                                 <label for="giaGoc">Giá gốc:</label>
-                                <input type="number" id="giaGoc" th:field="*{giaGoc}" step="0.01" min="0">
+                                <input type="number" id="giaGoc" th:field="*{giaGoc}" step="0.01" min="0" max="999999999999999.99">
+                                <small class="form-text text-muted">Giá tối đa: 999,999,999,999,999.99 VNĐ</small>
                             </div>
                         </div>
                         <div class="form-row">
@@ -104,6 +107,21 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group">
+                                <label for="monTheThaoId">Môn thể thao:</label>
+                                <select id="monTheThaoId" name="monTheThaoId">
+                                    <option value="">-- Chọn môn thể thao --</option>
+                                    <option th:each="sport : ${sports}" 
+                                            th:value="${sport.id}" 
+                                            th:selected="${sport.id == product.danhMucMonTheThao?.id}"
+                                            th:text="${sport.ten}">Môn thể thao</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <!-- Empty div để giữ layout -->
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label for="anhChinh">URL hình ảnh chính:</label>
                                 <input type="url" id="anhChinh" th:field="*{anhChinh}" placeholder="https://example.com/image.jpg">
                             </div>
@@ -111,6 +129,34 @@
                                 <label for="soLuongTon">Số lượng tồn kho:</label>
                                 <input type="number" id="soLuongTon" th:field="*{soLuongTon}" min="0">
                             </div>
+                        </div>
+                        
+                        <!-- Quản lý ảnh sản phẩm -->
+                        <div class="form-group">
+                            <label>Ảnh sản phẩm hiện tại:</label>
+                            <div class="product-images-grid" th:if="${productImages != null and !productImages.isEmpty()}">
+                                <div th:each="image, iterStat : ${productImages}" class="image-item">
+                                    <img th:src="${image.urlAnh}" alt="Ảnh sản phẩm" class="product-image">
+                                    <div class="image-info">
+                                        <span class="image-order" th:text="'Thứ tự: ' + ${image.thuTu}"></span>
+                                        <span class="image-date" th:text="${#temporals.format(image.ngayThem, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </div>
+                                    <div class="image-actions">
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteImage([[${image.id}]])">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${productImages == null or productImages.isEmpty()}" class="no-images">
+                                <p class="text-muted">Chưa có ảnh nào</p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="additionalImages">Thêm ảnh mới:</label>
+                            <input type="file" id="additionalImages" name="additionalImages" class="form-control" multiple accept="image/*">
+                            <small class="form-text text-muted">Có thể chọn nhiều ảnh cùng lúc.</small>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -160,6 +206,29 @@
                 setTimeout(() => alert.remove(), 300);
             });
         }, 5000);
+        
+        // Xóa ảnh sản phẩm
+        function deleteImage(imageId) {
+            if (confirm('Bạn có chắc chắn muốn xóa ảnh này?')) {
+                fetch('/admin/products/images/' + imageId + '/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload(); // Reload trang để cập nhật danh sách ảnh
+                    } else {
+                        alert('Có lỗi xảy ra khi xóa ảnh');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi xóa ảnh');
+                });
+            }
+        }
     </script>
 
     <style>
@@ -178,6 +247,57 @@
         .btn-warning:hover {
             background-color: #f57c00;
         }
+        
+        /* CSS cho quản lý ảnh sản phẩm */
+        .product-images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .image-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .image-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .image-order {
+            display: block;
+            font-weight: bold;
+        }
+        
+        .image-date {
+            display: block;
+        }
+        
+        .image-actions {
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        .no-images {
+            text-align: center;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 package com.example.datn.web;
 
 import com.example.datn.auth.AuthHelper;
-import com.example.datn.cart.CartService;
 import com.example.datn.user.NguoiDung;
 import com.example.datn.favorite.FavoriteService;
 import com.example.datn.product.SanPham;
@@ -50,21 +49,6 @@ public class HomeController extends BaseController {
         // Thêm thông tin giỏ hàng nếu user đã đăng nhập
         addCartInfoToModel(model, authentication);
         
-        // Lấy sản phẩm nổi bật
-        List<SanPham> sanPhamNoiBat = homeService.getSanPhamNoiBat();
-        model.addAttribute("sanPhamNoiBat", sanPhamNoiBat);
-
-        // Lấy sản phẩm mới nhất (8 sản phẩm đầu tiên)
-        Page<SanPham> sanPhamMoiNhat = homeService.getSanPhamMoiNhat(0, 8);
-        model.addAttribute("sanPhamMoiNhat", sanPhamMoiNhat.getContent());
-
-        // Lấy sản phẩm bán chạy nhất (8 sản phẩm đầu tiên)
-        Page<SanPham> sanPhamBanChayNhat = homeService.getSanPhamBanChayNhat(0, 8);
-        model.addAttribute("sanPhamBanChayNhat", sanPhamBanChayNhat.getContent());
-
-        // Lấy sản phẩm khuyến mãi (8 sản phẩm đầu tiên)
-        Page<SanPham> sanPhamKhuyenMai = homeService.getSanPhamKhuyenMai(0, 8);
-        model.addAttribute("sanPhamKhuyenMai", sanPhamKhuyenMai.getContent());
         
         // Lấy banner chính
         model.addAttribute("mainBanners", bannerService.getMainBanners());

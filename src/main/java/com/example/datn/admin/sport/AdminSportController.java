@@ -38,6 +38,18 @@ public class AdminSportController {
         model.addAttribute("sortBy", sortBy);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("search", search);
+        model.addAttribute("newSport", new DanhMucMonTheThao());
+        
+        // Thống kê môn thể thao
+        long totalSports = adminSportService.getTotalSports();
+        long activeSports = adminSportService.getActiveSportsCount();
+        long inactiveSports = adminSportService.getInactiveSports();
+        long newSportsThisMonth = adminSportService.getNewSportsThisMonth();
+        
+        model.addAttribute("totalSports", totalSports);
+        model.addAttribute("activeSports", activeSports);
+        model.addAttribute("inactiveSports", inactiveSports);
+        model.addAttribute("newSportsThisMonth", newSportsThisMonth);
         
         return "admin/sports";
     }

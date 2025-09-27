@@ -65,4 +65,23 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Long> {
     long countByHoatDongTrue();
     Page<SanPham> findByTenContainingOrMaSanPhamContaining(String ten, String maSanPham, Pageable pageable);
     List<SanPham> findByTenContainingOrMaSanPhamContaining(String ten, String maSanPham);
+    
+    // Statistics methods
+    long countByHoatDong(boolean hoatDong);
+    long countByNoiBat(boolean noiBat);
+    long countBySoLuongTonLessThanEqual(int soLuongTon);
+    
+    // Filter methods for admin
+    Page<SanPham> findByDanhMucId(Long danhMucId, Pageable pageable);
+    Page<SanPham> findByThuongHieuId(Long thuongHieuId, Pageable pageable);
+    
+    // Count methods for admin
+    long countByThuongHieuId(Long thuongHieuId);
+    
+    // Tìm mã sản phẩm lớn nhất có định dạng SPxxx
+    @Query("SELECT MAX(s.maSanPham) FROM SanPham s WHERE s.maSanPham LIKE 'SP%'")
+    String findMaxProductCode();
+    
+    // Kiểm tra mã sản phẩm đã tồn tại
+    boolean existsByMaSanPham(String maSanPham);
 }

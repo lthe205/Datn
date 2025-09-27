@@ -1,205 +1,83 @@
-# Activewear Store - Website Bán Quần Áo Thể Thao
+# DATN - Activewear Store
 
-## Mô tả dự án
-Website bán quần áo thể thao được xây dựng bằng Spring Boot với giao diện hiện đại và responsive. Dự án bao gồm hệ thống quản lý sản phẩm, danh mục, thương hiệu và các tính năng tìm kiếm, lọc sản phẩm.
-
-## Công nghệ sử dụng
-- **Backend**: Spring Boot 3.x, Spring Security, Spring Data JPA
-- **Database**: SQL Server
-- **Frontend**: Thymeleaf, HTML5, CSS3, JavaScript
-- **UI Framework**: Font Awesome, Google Fonts
-- **Build Tool**: Maven
-
-## Tính năng chính
-
-### Trang chủ
-- Hiển thị sản phẩm nổi bật
-- Sản phẩm mới nhất
-- Sản phẩm bán chạy nhất
-- Sản phẩm khuyến mãi
-- Thống kê tổng quan
-- Tìm kiếm sản phẩm
-- Danh mục và thương hiệu
-
-### Quản lý sản phẩm
-- Entity cho sản phẩm, danh mục, thương hiệu
-- Biến thể sản phẩm (kích cỡ, màu sắc)
-- Ảnh sản phẩm
-- Repository với các query tùy chỉnh
-- Service layer xử lý business logic
-
-### Giao diện người dùng
-- Responsive design
-- Giao diện hiện đại với gradient và shadow
-- Animation và transition mượt mà
-- Tối ưu cho mobile và desktop
+Dự án đồ án tốt nghiệp - Cửa hàng thời trang thể thao
 
 ## Cấu trúc dự án
 
-```
-src/main/java/com/example/datn/
-├── auth/                    # Xác thực và phân quyền
-├── common/                  # Các service chung
-├── config/                  # Cấu hình Spring
-├── product/                 # Quản lý sản phẩm
-│   ├── DanhMuc.java
-│   ├── ThuongHieu.java
-│   ├── SanPham.java
-│   ├── BienTheSanPham.java
-│   ├── AnhSanPham.java
-│   └── *Repository.java
-├── user/                    # Quản lý người dùng
-└── web/                     # Controller và Service
-    ├── HomeController.java
-    └── HomeService.java
+Dự án sử dụng Spring Boot với cấu trúc truyền thống:
 
-src/main/resources/
-├── static/css/
-│   └── home.css            # CSS cho trang chủ
-├── templates/
-│   ├── index.html          # Trang chủ
-│   ├── search.html         # Trang tìm kiếm
-│   └── product-detail.html # Chi tiết sản phẩm
-└── db/
-    ├── DATN.sql           # Schema database
-    └── sample_data.sql    # Dữ liệu mẫu
+```
+DATN/
+├── src/
+│   ├── main/
+│   │   ├── java/              # Java source code
+│   │   └── resources/
+│   │       ├── static/        # CSS, JS, Images
+│   │       ├── templates/     # HTML templates (Thymeleaf)
+│   │       └── application.properties
+│   └── test/                  # Test files
+├── uploads/                   # File uploads
+├── pom.xml                    # Maven dependencies
+└── README.md                  # File này
 ```
 
-## Cài đặt và chạy dự án
+## Công nghệ sử dụng
+
+- **Spring Boot 3.5.6** - Framework chính
+- **Spring Security** - Authentication & Authorization
+- **Spring Data JPA** - Database ORM
+- **Thymeleaf** - Template engine
+- **SQL Server** - Database
+- **Maven** - Build tool
+
+## Cài đặt và chạy
 
 ### 1. Yêu cầu hệ thống
-- Java 17+
-- Maven 3.6+
-- SQL Server 2019+
-- IDE (IntelliJ IDEA, Eclipse, VS Code)
+- **Java 17+**
+- **Maven 3.6+** (hoặc sử dụng Maven Wrapper)
+- **SQL Server**
+- **IDE** (IntelliJ IDEA, Eclipse) - Khuyến nghị
 
-### 2. Cấu hình database
-1. Tạo database `DATN` trong SQL Server
-2. Chạy file `src/main/resources/db/DATN.sql` để tạo schema
-3. Chạy file `src/main/resources/db/sample_data.sql` để thêm dữ liệu mẫu
-4. Cập nhật thông tin kết nối trong `application.properties`:
+### 2. Chạy dự án
 
-```properties
-spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=DATN;encrypt=true;trustServerCertificate=true
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-```
+**Phương pháp 1: Sử dụng IDE (Khuyến nghị)**
+1. Mở dự án trong IntelliJ IDEA hoặc Eclipse
+2. Import Maven project
+3. Chạy class `DatnApplication.java`
 
-### 3. Chạy ứng dụng
+**Phương pháp 2: Sử dụng Maven Wrapper**
 ```bash
-# Clone repository
-git clone <repository-url>
-cd Datn
-
-# Build project
-mvn clean install
-
-# Điền đúng Google OAuth
-notepad src\main\resources\application.properties
-
-# Chạy ứng dụng
-.\mvnw.cmd spring-boot:run
+./mvnw spring-boot:run
 ```
 
-### 4. Truy cập ứng dụng
-- URL: http://localhost:8080
-- Trang chủ: http://localhost:8080/
-- Tìm kiếm: http://localhost:8080/tim-kiem?q=keyword
-- Chi tiết sản phẩm: http://localhost:8080/san-pham/{id}
+**Phương pháp 3: Sử dụng Maven**
+```bash
+mvn spring-boot:run
+```
 
-## API Endpoints
+### 3. Truy cập ứng dụng
+- **Trang chủ**: http://localhost:8080
+- **Admin**: http://localhost:8080/admin
+- **API**: http://localhost:8080/api
 
-### Trang chủ
-- `GET /` - Trang chủ với sản phẩm nổi bật, mới nhất, bán chạy
+## Tính năng chính
 
-### Tìm kiếm và lọc
-- `GET /tim-kiem?q={keyword}&page={page}&size={size}` - Tìm kiếm sản phẩm
-- `GET /danh-muc/{id}?page={page}&size={size}` - Lọc theo danh mục
-- `GET /thuong-hieu/{id}?page={page}&size={size}` - Lọc theo thương hiệu
+- **Authentication**: Đăng nhập/đăng ký với email và Google OAuth2
+- **Product Management**: Quản lý sản phẩm, danh mục, thương hiệu
+- **Shopping Cart**: Giỏ hàng và thanh toán
+- **Admin Panel**: Quản lý hệ thống
+- **File Upload**: Upload hình ảnh sản phẩm
+- **Responsive Design**: Giao diện thân thiện mobile
 
-### Chi tiết sản phẩm
-- `GET /san-pham/{id}` - Chi tiết sản phẩm
-- `GET /api/san-pham/{id}/anh` - API lấy ảnh sản phẩm
+## Cấu hình Database
 
-## Dữ liệu mẫu
+1. Cài đặt SQL Server
+2. Tạo database tên `DATN`
+3. Chạy script trong `backend/src/main/resources/db/DATN.sql`
+4. Cập nhật thông tin database trong `backend/src/main/resources/application.properties`
 
-Dự án đã bao gồm dữ liệu mẫu với:
-- 3 vai trò (Admin, Khách hàng, Nhân viên)
-- 15 danh mục sản phẩm
-- 10 thương hiệu
-- 12 sản phẩm với đầy đủ thông tin
-- 16 biến thể sản phẩm
-- 8 ảnh sản phẩm
+## Lưu ý
 
-## Tính năng nổi bật
-
-### 1. Responsive Design
-- Tối ưu cho mọi thiết bị
-- Mobile-first approach
-- Grid layout linh hoạt
-
-### 2. Performance
-- Lazy loading cho ảnh
-- Pagination cho danh sách sản phẩm
-- Caching với Spring Cache
-
-### 3. User Experience
-- Tìm kiếm real-time
-- Filter và sort sản phẩm
-- Smooth scrolling và animation
-- Loading states
-
-### 4. SEO Friendly
-- Semantic HTML
-- Meta tags
-- Clean URLs
-- Sitemap ready
-
-## Phát triển tiếp
-
-### Tính năng có thể thêm
-1. **Giỏ hàng và thanh toán**
-   - Thêm sản phẩm vào giỏ
-   - Checkout process
-   - Payment integration
-
-2. **Quản lý đơn hàng**
-   - Theo dõi đơn hàng
-   - Lịch sử mua hàng
-   - Invoice generation
-
-3. **Hệ thống đánh giá**
-   - Rating sản phẩm
-   - Review và comment
-   - Photo reviews
-
-4. **Admin Dashboard**
-   - Quản lý sản phẩm
-   - Thống kê bán hàng
-   - Quản lý đơn hàng
-
-5. **Tính năng nâng cao**
-   - Wishlist
-   - Compare products
-   - Recently viewed
-   - Recommendations
-
-## Đóng góp
-
-1. Fork dự án
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
-## Liên hệ
-
-- Email: lethe122005@gmail.com
-- Phone: xxxxxxxxxxxxxx
-- Address: FPT POLYTECHNIC
-
-
+- Đảm bảo cả backend và frontend đều chạy cùng lúc
+- Backend cung cấp API cho frontend
+- CORS đã được cấu hình để cho phép kết nối giữa frontend và backend

@@ -6,6 +6,7 @@
     <title>Quản lý danh mục - Admin</title>
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="admin-layout">
@@ -30,85 +31,642 @@
         <!-- Main Content -->
         <div class="admin-main">
             <div class="admin-header">
-                <h1>Quản lý danh mục</h1>
+                <h1><i class="fas fa-tags"></i> Quản lý Danh mục</h1>
+                <div class="admin-user">
+                    <span th:if="${#authentication.principal instanceof T(com.example.datn.auth.CustomUserDetails)}">
+                        Xin chào, <strong th:text="${#authentication.principal.domainUser.ten}">Admin</strong>
+                    </span>
+                </div>
             </div>
 
             <div class="admin-content">
                 <!-- Flash Messages -->
-                <div th:if="${success}" class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    <span th:text="${success}">Success message</span>
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div th:if="${error}" class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span th:text="${error}">Error message</span>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
-                <!-- Add Category Form -->
-                <div class="form-card">
-                    <h3><i class="fas fa-plus"></i> Thêm danh mục mới</h3>
-                    <form th:action="@{/admin/categories}" method="post" th:object="${newCategory}">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="ten">Tên danh mục *</label>
-                                <input type="text" id="ten" th:field="*{ten}" required placeholder="Nhập tên danh mục">
-                            </div>
-                            <div class="form-group">
-                                <label for="moTa">Mô tả</label>
-                                <input type="text" id="moTa" th:field="*{moTa}" placeholder="Mô tả danh mục">
-                            </div>
+                <!-- Add Category Button -->
+                <div class="mb-3">
+                    <button class="btn btn-primary" onclick="toggleAddForm()">
+                        <i class="fas fa-plus"></i> Thêm danh mục
+                    </button>
+                </div>
+
+                <!-- Data Overview -->
+                <div class="data-overview">
+                    <div class="overview-item">
+                        <div class="overview-icon">
+                            <i class="fas fa-tags"></i>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Thêm danh mục
-                        </button>
-                    </form>
+                        <div class="overview-content">
+                            <div class="overview-value" th:text="${totalCategories}">0</div>
+                            <div class="overview-label">Tổng danh mục</div>
+                        </div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="overview-content">
+                            <div class="overview-value" th:text="${activeCategories}">0</div>
+                            <div class="overview-label">Đang hoạt động</div>
+                        </div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="overview-content">
+                            <div class="overview-value" th:text="${parentCategories}">0</div>
+                            <div class="overview-label">Danh mục cha</div>
+                        </div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-icon">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <div class="overview-content">
+                            <div class="overview-value" th:text="${childCategories}">0</div>
+                            <div class="overview-label">Danh mục con</div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Categories List -->
-                <div class="table-container">
-                    <table class="admin-table">
+                <!-- Search and Filter -->
+                <div class="data-controls">
+                    <div class="controls-form">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Tìm kiếm danh mục..." id="searchInput">
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" id="statusFilter">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="active">Đang hoạt động</option>
+                                <option value="inactive">Tạm dừng</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline-primary" onclick="filterCategories()">
+                            <i class="fas fa-search"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Categories Table -->
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3><i class="fas fa-list"></i> Danh sách Danh mục</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-outline-success btn-sm" onclick="exportCategories()">
+                                <i class="fas fa-file-excel"></i> Xuất Excel
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="refreshPage()">
+                                <i class="fas fa-sync-alt"></i> Làm mới
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Tên danh mục</th>
-                                <th>Mô tả</th>
-                                <th>Danh mục cha</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
+                                <th class="col-checkbox">
+                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                </th>
+                                <th class="col-id">ID</th>
+                                <th class="col-name">Tên danh mục</th>
+                                <th class="col-description">Mô tả</th>
+                                <th class="col-parent">Danh mục cha</th>
+                                <th class="col-date">Ngày tạo</th>
+                                <th class="col-status">Trạng thái</th>
+                                <th class="col-actions">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="category : ${categories}">
-                                <td th:text="${category.id}">1</td>
-                                <td th:text="${category.ten}">Tên danh mục</td>
-                                <td th:text="${category.moTa}">Mô tả</td>
-                                <td th:text="${category.danhMucCha != null ? category.danhMucCha.ten : 'Danh mục gốc'}">Danh mục gốc</td>
-                                <td th:text="${#temporals.format(category.ngayTao, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a th:href="@{/admin/categories/edit/{id}(id=${category.id})}" class="btn btn-sm btn-warning" title="Sửa">
+                                <td class="col-checkbox">
+                                    <input type="checkbox" class="category-checkbox" th:value="${category.id}">
+                                </td>
+                                <td class="col-id" th:text="${category.id}">1</td>
+                                <td class="col-name">
+                                    <div class="category-info">
+                                        <strong th:text="${category.ten}">Tên danh mục</strong>
+                                    </div>
+                                </td>
+                                <td class="col-description" th:text="${category.moTa}">Mô tả</td>
+                                <td class="col-parent">
+                                    <span th:if="${category.danhMucCha != null}" th:text="${category.danhMucCha.ten}" class="parent-category">Danh mục cha</span>
+                                    <span th:unless="${category.danhMucCha != null}" class="text-muted">Danh mục gốc</span>
+                                </td>
+                                <td class="col-date" th:text="${#temporals.format(category.ngayTao, 'dd/MM/yyyy')}">01/01/2024</td>
+                                <td class="col-status">
+                                    <span class="status-badge active">Hoạt động</span>
+                                </td>
+                                <td class="col-actions">
+                                    <div class="btn-group">
+                                        <button class="btn-action btn-view" th:onclick="'viewCategory(' + ${category.id} + ')'" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-action btn-edit" th:onclick="'editCategory(' + ${category.id} + ')'" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a th:href="@{/admin/categories/delete/{id}(id=${category.id})}" class="btn btn-sm btn-danger" title="Xóa"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?')">
+                                        </button>
+                                        <button class="btn-action btn-delete" th:onclick="'deleteCategory(' + ${category.id} + ')'" title="Xóa">
                                             <i class="fas fa-trash"></i>
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(categories)}">
-                                <td colspan="6" class="text-center">
+                                <td colspan="8" class="text-center">
                                     <div class="empty-state">
-                                        <i class="fas fa-tags fa-3x"></i>
-                                        <p>Chưa có danh mục nào</p>
+                                        <i class="fas fa-tags fa-3x text-muted"></i>
+                                        <p class="text-muted">Chưa có danh mục nào</p>
                                     </div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container" th:if="${categories != null and !categories.isEmpty()}">
+                    <div class="pagination-info">
+                        <span>Hiển thị <strong th:text="${categories.size()}">0</strong> danh mục</span>
+                    </div>
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item disabled">
+                                <button class="btn-pagination" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                            </li>
+                            <li class="page-item active">
+                                <button class="btn-pagination">1</button>
+                            </li>
+                            <li class="page-item disabled">
+                                <button class="btn-pagination" disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Add Category Modal -->
+                <div class="modal fade" id="addCategoryModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="fas fa-plus"></i> Thêm danh mục mới</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form th:action="@{/admin/categories}" method="post" th:object="${newCategory}">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ten" class="form-label">Tên danh mục *</label>
+                                            <input type="text" class="form-control" id="ten" th:field="*{ten}" required placeholder="Nhập tên danh mục">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="moTa" class="form-label">Mô tả</label>
+                                            <input type="text" class="form-control" id="moTa" th:field="*{moTa}" placeholder="Mô tả danh mục">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="danhMucCha" class="form-label">Danh mục cha</label>
+                                            <select class="form-control" id="danhMucCha" th:field="*{danhMucCha.id}">
+                                                <option value="">Chọn danh mục cha</option>
+                                                <option th:each="parent : ${parentCategoriesList}" th:value="${parent.id}" th:text="${parent.ten}">Danh mục cha</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Thêm danh mục
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-light: #e8f2ff;
+            --primary-dark: #5a67d8;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --info: #4299e1;
+            --light: #f7fafc;
+            --dark: #2d3748;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        /* Header */
+        .admin-header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .admin-header h1 {
+            color: #1e293b;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .admin-user {
+            color: #64748b;
+        }
+
+        /* Data Overview */
+        .data-overview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .overview-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .overview-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--info));
+        }
+
+        .overview-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .overview-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .overview-item:nth-child(1) .overview-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .overview-item:nth-child(2) .overview-icon { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
+        .overview-item:nth-child(3) .overview-icon { background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); }
+        .overview-item:nth-child(4) .overview-icon { background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); }
+
+        .overview-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .overview-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Data Controls */
+        .data-controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .controls-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-control {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Data Table */
+        .data-table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+        }
+
+        .table-header h3 {
+            margin: 0;
+            color: var(--gray-900);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Column widths */
+        .col-checkbox { width: 40px; }
+        .col-id { width: 60px; }
+        .col-name { width: 200px; }
+        .col-description { width: 250px; }
+        .col-parent { width: 150px; }
+        .col-date { width: 120px; }
+        .col-status { width: 100px; }
+        .col-actions { width: 120px; }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .status-badge.active {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(72, 187, 120, 0.3);
+        }
+
+        .status-badge.inactive {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(245, 101, 101, 0.3);
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 2px;
+            color: var(--gray-600);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-action:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+        .btn-view:hover { color: var(--info); }
+        .btn-edit:hover { color: var(--warning); }
+        .btn-delete:hover { color: var(--danger); }
+
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            border-radius: 0 0 12px 12px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .pagination-info {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            margin: 0;
+        }
+
+        .btn-pagination {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-600);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-pagination:hover:not(:disabled) {
+            background-color: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .btn-pagination:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-item.active .btn-pagination {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .empty-state i {
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .data-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .controls-form {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+
+    <script>
+        function toggleAddForm() {
+            const modal = new bootstrap.Modal(document.getElementById('addCategoryModal'));
+            modal.show();
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.category-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        function filterCategories() {
+            const search = document.getElementById('searchInput').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            let url = '/admin/categories?';
+            if (search) url += 'search=' + encodeURIComponent(search) + '&';
+            if (status) url += 'status=' + encodeURIComponent(status) + '&';
+            
+            window.location.href = url;
+        }
+
+        function exportCategories() {
+            alert('Chức năng xuất Excel sẽ được triển khai');
+        }
+
+        function refreshPage() {
+            window.location.reload();
+        }
+
+        function navigateToPage(page) {
+            const url = new URL(window.location);
+            url.searchParams.set('page', page);
+            window.location.href = url.toString();
+        }
+
+        function viewCategory(id) {
+            alert('Xem chi tiết danh mục ID: ' + id);
+        }
+
+        function editCategory(id) {
+            window.location.href = '/admin/categories/edit/' + id;
+        }
+
+        function deleteCategory(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
+                window.location.href = '/admin/categories/delete/' + id;
+            }
+        }
+    </script>
 </body>
 </html>

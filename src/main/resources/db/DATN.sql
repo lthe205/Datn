@@ -141,8 +141,8 @@ CREATE TABLE dbo.san_pham (
     ma_san_pham     NVARCHAR(50)         NOT NULL,
     ten             NVARCHAR(255)        NOT NULL,
     mo_ta           NVARCHAR(MAX)        NULL,
-    gia             DECIMAL(10,2)        NULL,
-    gia_goc         DECIMAL(10,2)        NULL,
+    gia             DECIMAL(15,2)        NULL,
+    gia_goc         DECIMAL(15,2)        NULL,
     anh_chinh       NVARCHAR(255)        NULL,
     so_luong_ton    INT                  NOT NULL CONSTRAINT DF_san_pham_so_luong_ton DEFAULT (0),
     chat_lieu       NVARCHAR(255)        NULL,
@@ -151,6 +151,7 @@ CREATE TABLE dbo.san_pham (
     da_ban          INT                  NOT NULL CONSTRAINT DF_san_pham_da_ban DEFAULT (0),
     id_danh_muc     BIGINT               NULL,
     id_thuong_hieu  BIGINT               NULL,
+    id_mon_the_thao BIGINT               NULL,
     hoat_dong       BIT                  NOT NULL CONSTRAINT DF_san_pham_hoat_dong DEFAULT (1),
     noi_bat         BIT                  NOT NULL CONSTRAINT DF_san_pham_noi_bat DEFAULT (0),
     ngay_tao        DATETIME2(0)         NOT NULL CONSTRAINT DF_san_pham_ngay_tao DEFAULT (SYSUTCDATETIME()),
@@ -169,8 +170,8 @@ CREATE TABLE dbo.bien_the_san_pham (
     kich_co         NVARCHAR(255)        NULL,
     mau_sac         NVARCHAR(255)        NULL,
     so_luong        INT                  NULL,
-    gia_ban         DECIMAL(10,2)        NULL,
-    gia_khuyen_mai  DECIMAL(10,2)        NULL,
+    gia_ban         DECIMAL(15,2)        NULL,
+    gia_khuyen_mai  DECIMAL(15,2)        NULL,
     trang_thai      BIT                  NOT NULL CONSTRAINT DF_bien_the_trang_thai DEFAULT (1),
     ngay_tao        DATETIME2(0)         NOT NULL CONSTRAINT DF_bien_the_ngay_tao DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT PK_bien_the_san_pham PRIMARY KEY CLUSTERED (id)
@@ -211,7 +212,7 @@ CREATE TABLE dbo.chi_tiet_gio_hang (
     gio_hang_id  BIGINT               NOT NULL,
     san_pham_id  BIGINT               NOT NULL,
     so_luong     INT                  NOT NULL DEFAULT 1,
-    gia          DECIMAL(10,2)        NOT NULL,
+    gia          DECIMAL(15,2)        NOT NULL,
     kich_co      NVARCHAR(255)        NULL,
     mau_sac      NVARCHAR(255)        NULL,
     CONSTRAINT PK_chi_tiet_gio_hang PRIMARY KEY CLUSTERED (id),
@@ -285,8 +286,8 @@ CREATE TABLE dbo.chi_tiet_don_hang (
     don_hang_id    BIGINT               NOT NULL,
     san_pham_id    BIGINT               NOT NULL,
     so_luong       INT                  NULL,
-    gia            DECIMAL(10,2)        NULL,
-    thanh_tien     DECIMAL(10,2)        NULL,
+    gia            DECIMAL(15,2)        NULL,
+    thanh_tien     DECIMAL(15,2)        NULL,
     kich_co        NVARCHAR(255)        NULL,
     mau_sac        NVARCHAR(255)        NULL,
     CONSTRAINT PK_chi_tiet_don_hang PRIMARY KEY CLUSTERED (id)
@@ -301,13 +302,13 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.chi_tiet_don_hang') AND name = 'san_pham_id')
         ALTER TABLE dbo.chi_tiet_don_hang ADD san_pham_id BIGINT NULL;
     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.chi_tiet_don_hang') AND name = 'gia')
-        ALTER TABLE dbo.chi_tiet_don_hang ADD gia DECIMAL(10,2) NULL;
+        ALTER TABLE dbo.chi_tiet_don_hang ADD gia DECIMAL(15,2) NULL;
     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.chi_tiet_don_hang') AND name = 'kich_co')
         ALTER TABLE dbo.chi_tiet_don_hang ADD kich_co NVARCHAR(50) NULL;
     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.chi_tiet_don_hang') AND name = 'mau_sac')
         ALTER TABLE dbo.chi_tiet_don_hang ADD mau_sac NVARCHAR(50) NULL;
     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.chi_tiet_don_hang') AND name = 'thanh_tien')
-        ALTER TABLE dbo.chi_tiet_don_hang ADD thanh_tien DECIMAL(10,2) NULL;
+        ALTER TABLE dbo.chi_tiet_don_hang ADD thanh_tien DECIMAL(15,2) NULL;
 END
 
 IF OBJECT_ID(N'dbo.thanh_toan',N'U') IS NULL
@@ -317,7 +318,7 @@ CREATE TABLE dbo.thanh_toan (
     id_don_hang   BIGINT               NOT NULL,
     loai          NVARCHAR(50)         NULL, -- VNPAY, MOMO, PAYPAL...
     ma_giao_dich  NVARCHAR(100)        NULL,
-    so_tien       DECIMAL(10,2)        NULL,
+    so_tien       DECIMAL(15,2)        NULL,
     trang_thai    NVARCHAR(30)         NULL,
     ngay_tao      DATETIME2(0)         NOT NULL CONSTRAINT DF_thanh_toan_ngay_tao DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT PK_thanh_toan PRIMARY KEY CLUSTERED (id)
@@ -346,7 +347,7 @@ CREATE TABLE dbo.khuyen_mai (
     ma_khuyen_mai  NVARCHAR(50)         NULL,
     ten            NVARCHAR(100)        NULL,
     mo_ta          NVARCHAR(255)        NULL,
-    gia_tri        DECIMAL(10,2)        NULL,
+    gia_tri        DECIMAL(15,2)        NULL,
     loai           NVARCHAR(20)         NULL, -- 'PERCENT' hoặc 'VND'
     ngay_bat_dau   DATETIME2(0)         NULL,
     ngay_ket_thuc  DATETIME2(0)         NULL,
@@ -594,7 +595,7 @@ VALUES
 IF OBJECT_ID(N'tempdb..#SP') IS NOT NULL DROP TABLE #SP;
 CREATE TABLE #SP(
     ma NVARCHAR(50), ten NVARCHAR(150), mo_ta NVARCHAR(MAX),
-    gia DECIMAL(10,2), gia_goc DECIMAL(10,2), anh NVARCHAR(255),
+    gia DECIMAL(15,2), gia_goc DECIMAL(15,2), anh NVARCHAR(255),
     so_luong INT, chat_lieu NVARCHAR(100), xuat_xu NVARCHAR(50),
     luot_xem INT, da_ban INT, ten_danh_muc NVARCHAR(100), ten_thuong_hieu NVARCHAR(100),
     hoat_dong BIT, noi_bat BIT
@@ -645,7 +646,7 @@ VALUES
 
 -- 3.7 Biến thể
 IF OBJECT_ID(N'tempdb..#BT') IS NOT NULL DROP TABLE #BT;
-CREATE TABLE #BT(ma NVARCHAR(50), kich_co NVARCHAR(50), mau NVARCHAR(50), so_luong INT, gia_ban DECIMAL(10,2));
+CREATE TABLE #BT(ma NVARCHAR(50), kich_co NVARCHAR(50), mau NVARCHAR(50), so_luong INT, gia_ban DECIMAL(15,2));
 
 INSERT INTO #BT VALUES
 -- SP001
@@ -816,6 +817,11 @@ ELSE
 BEGIN
     PRINT N'⚠️ Bảng danh mục môn thể thao đã tồn tại!';
 END
+
+-- Thêm foreign key constraint cho san_pham -> danh_muc_mon_the_thao
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_san_pham_mon_the_thao')
+    ALTER TABLE dbo.san_pham
+    ADD CONSTRAINT FK_san_pham_mon_the_thao FOREIGN KEY (id_mon_the_thao) REFERENCES dbo.danh_muc_mon_the_thao(id);
 
 -- =============================================
 -- BẢNG BANNER
