@@ -89,13 +89,16 @@ spring.datasource.password=your_password
 ```bash
 # Clone repository
 git clone <repository-url>
-cd Datn-feature-login
+cd Datn
 
 # Build project
 mvn clean install
 
+# Điền đúng Google OAuth
+notepad src\main\resources\application.properties
+
 # Chạy ứng dụng
-mvn spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
 ### 4. Truy cập ứng dụng
@@ -195,10 +198,8 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Liên hệ
 
-- Email: info@activewear.com
-- Phone: 0123 456 789
-- Address: 123 Đường ABC, Quận 1, TP.HCM
+- Email: lethe122005@gmail.com
+- Phone: xxxxxxxxxxxxxx
+- Address: FPT POLYTECHNIC
 
----
 
-**Lưu ý**: Đây là dự án demo cho mục đích học tập. Để sử dụng trong production, cần thêm các tính năng bảo mật, validation và error handling đầy đủ.

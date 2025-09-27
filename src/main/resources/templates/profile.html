@@ -13,12 +13,50 @@
     <header class="header">
         <div class="container">
             <div class="header-top">
-                <div class="logo">
-                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
-                </div>
+                <a th:href="@{/}" class="logo">
+                    <div class="logo-icon">
+                        <span class="logo-letter">A</span>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-line1">ACTIVEWEAR</div>
+                        <div class="logo-line2">STORE<sup>®</sup></div>
+                    </div>
+                </a>
+                <nav class="main-nav">
+                    <ul>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">THƯƠNG HIỆU <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                    <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                                </li>
+                                <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                    <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">MÔN THỂ THAO <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li th:each="monTheThao : ${danhMucMonTheThao}" th:if="${danhMucMonTheThao != null and !danhMucMonTheThao.isEmpty()}">
+                                    <a th:href="@{/mon-the-thao/{id}(id=${monTheThao.id})}" th:text="${monTheThao.ten}">Tên môn thể thao</a>
+                                </li>
+                                <li th:if="${danhMucMonTheThao == null or danhMucMonTheThao.isEmpty()}">
+                                    <a href="#" style="color: #999; cursor: default;">Chưa có môn thể thao</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><a th:href="@{/san-pham-moi}">SẢN PHẨM MỚI</a></li>
+                        <li><a th:href="@{/nam}">NAM</a></li>
+                        <li><a th:href="@{/nu}">NỮ</a></li>
+                        <li><a th:href="@{/tre-em}">TRẺ EM</a></li>
+                        <li><a th:href="@{/outlet}">OUTLET</a></li>
+                        <li><a th:href="@{/lien-he}">LIÊN HỆ</a></li>
+                    </ul>
+                </nav>
                 <div class="search-bar">
                     <form th:action="@{/tim-kiem}" method="get">
-                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm...">
+                        <input type="text" name="q" placeholder="Tìm kiếm..." th:value="${keyword}">
                         <button type="submit"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
@@ -54,35 +92,6 @@
                     </div>
                 </div>
             </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a th:href="@{/}">Trang chủ</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
-                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
-                            </li>
-                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
-                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
-                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
-                            </li>
-                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
-                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
-                    <li><a href="#lien-he">Liên hệ</a></li>
-                </ul>
-            </nav>
         </div>
     </header>
 
@@ -100,8 +109,12 @@
                 <!-- Sidebar -->
                 <div class="profile-sidebar">
                     <div class="profile-avatar">
-                        <div class="avatar-circle">
-                            <i class="fas fa-user"></i>
+                        <div class="avatar-circle clickable-avatar" id="sidebar-avatar" title="Click để đổi avatar">
+                            <img th:if="${nguoiDung != null && nguoiDung.avatarUrl != null}" 
+                                 th:src="${nguoiDung.avatarUrl}" 
+                                 alt="Avatar" 
+                                 class="sidebar-avatar-image">
+                            <i th:unless="${nguoiDung != null && nguoiDung.avatarUrl != null}" class="fas fa-user"></i>
                         </div>
                         <h3 th:text="${nguoiDung.ten}">Tên người dùng</h3>
                         <p th:text="${nguoiDung.email}">email@example.com</p>
@@ -136,6 +149,9 @@
                             <h2><i class="fas fa-user"></i> Thông tin cá nhân</h2>
                             <p>Quản lý thông tin cá nhân của bạn</p>
                         </div>
+
+                        <!-- Hidden file input for avatar upload -->
+                        <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
 
                         <form th:action="@{/thong-tin-ca-nhan/cap-nhat}" method="post" th:object="${profileForm}" class="profile-form">
                             <div class="form-grid">
@@ -363,6 +379,145 @@
                     }
                 });
             });
+
+            // Avatar upload functionality
+            const avatarUpload = document.getElementById('avatar-upload');
+            const sidebarAvatar = document.getElementById('sidebar-avatar');
+
+            if (avatarUpload) {
+                avatarUpload.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Validate file type
+                        if (!file.type.startsWith('image/')) {
+                            alert('Vui lòng chọn file ảnh hợp lệ');
+                            return;
+                        }
+
+                        // Validate file size (5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert('Kích thước file không được vượt quá 5MB');
+                            return;
+                        }
+
+                        // Show preview in sidebar
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            updateSidebarAvatar(e.target.result);
+                        };
+                        reader.readAsDataURL(file);
+
+                        // Upload file
+                        uploadAvatar(file);
+                    }
+                });
+            }
+
+
+            // Sidebar avatar click functionality
+            if (sidebarAvatar) {
+                sidebarAvatar.addEventListener('click', function() {
+                    // Trigger the file input
+                    if (avatarUpload) {
+                        avatarUpload.click();
+                    }
+                });
+            }
+
+            function uploadAvatar(file) {
+                const formData = new FormData();
+                formData.append('avatar', file);
+
+                fetch('/upload-avatar', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update sidebar avatar
+                        updateSidebarAvatar(data.avatarUrl);
+
+                        // Show success message
+                        showMessage('Upload avatar thành công!', 'success');
+                    } else {
+                        showMessage(data.message || 'Có lỗi xảy ra khi upload avatar', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('Có lỗi xảy ra khi upload avatar', 'error');
+                });
+            }
+
+
+            function updateSidebarAvatar(avatarUrl) {
+                const sidebarAvatarImg = sidebarAvatar.querySelector('.sidebar-avatar-image');
+                const sidebarAvatarIcon = sidebarAvatar.querySelector('i');
+                
+                if (avatarUrl) {
+                    // Show image
+                    if (sidebarAvatarImg) {
+                        sidebarAvatarImg.src = avatarUrl;
+                        sidebarAvatarImg.style.display = 'block';
+                    }
+                    if (sidebarAvatarIcon) {
+                        sidebarAvatarIcon.style.display = 'none';
+                    }
+                } else {
+                    // Show icon
+                    if (sidebarAvatarImg) {
+                        sidebarAvatarImg.style.display = 'none';
+                    }
+                    if (sidebarAvatarIcon) {
+                        sidebarAvatarIcon.style.display = 'block';
+                    }
+                }
+            }
+
+            function showMessage(message, type) {
+                // Create message element
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.textContent = message;
+                
+                // Add styles
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 4px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease;
+                `;
+                
+                if (type === 'success') {
+                    messageDiv.style.backgroundColor = '#4CAF50';
+                } else {
+                    messageDiv.style.backgroundColor = '#f44336';
+                }
+
+                // Add animation styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Add to page
+                document.body.appendChild(messageDiv);
+
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 3000);
+            }
         });
     </script>
 </body>

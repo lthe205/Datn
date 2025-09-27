@@ -44,6 +44,10 @@ public class AuthHelper {
                 NguoiDungRepository repository = applicationContext.getBean(NguoiDungRepository.class);
                 NguoiDung user = repository.findByEmail(email).orElse(null);
                 System.out.println("Debug - User found in DB: " + (user != null ? user.getTen() : "null"));
+                if (user != null) {
+                    System.out.println("Debug - User avatar URL: " + user.getAvatarUrl());
+                    System.out.println("Debug - User provider: " + user.getProvider());
+                }
                 return user;
             }
         }

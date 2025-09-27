@@ -4,6 +4,7 @@ import com.example.datn.auth.AuthHelper;
 import com.example.datn.cart.CartService;
 import com.example.datn.product.DanhMucRepository;
 import com.example.datn.product.ThuongHieuRepository;
+import com.example.datn.sport.DanhMucMonTheThaoRepository;
 import com.example.datn.user.NguoiDung;
 import com.example.datn.user.NguoiDungRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,22 +21,13 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/thong-tin-ca-nhan")
-public class ProfileController {
+public class ProfileController extends BaseController {
 
     @Autowired
     private NguoiDungRepository nguoiDungRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private DanhMucRepository danhMucRepository;
-
-    @Autowired
-    private ThuongHieuRepository thuongHieuRepository;
-
-    @Autowired
-    private CartService cartService;
 
     @GetMapping
     public String profile(Model model) {
@@ -46,12 +38,8 @@ public class ProfileController {
         // Thêm thông tin giỏ hàng nếu user đã đăng nhập
         addCartInfoToModel(model, authentication);
         
-        // Thêm dữ liệu cho dropdown navigation
-        List<com.example.datn.product.DanhMuc> danhMucCha = danhMucRepository.findDanhMucCha();
-        model.addAttribute("danhMucCha", danhMucCha);
-        
-        List<com.example.datn.product.ThuongHieu> thuongHieu = thuongHieuRepository.findAll();
-        model.addAttribute("thuongHieu", thuongHieu);
+        // Thêm dữ liệu navigation
+        addNavigationDataToModel(model);
         
         NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
         
@@ -176,19 +164,4 @@ public class ProfileController {
         public void setGioiTinh(String gioiTinh) { this.gioiTinh = gioiTinh; }
     }
 
-    // Helper method để thêm thông tin giỏ hàng vào model
-    private void addCartInfoToModel(Model model, Authentication authentication) {
-        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
-        if (nguoiDung != null) {
-            try {
-                int cartItemCount = cartService.getCartItemCount(nguoiDung);
-                model.addAttribute("cartItemCount", cartItemCount);
-            } catch (Exception e) {
-                // Nếu có lỗi, set cartItemCount = 0
-                model.addAttribute("cartItemCount", 0);
-            }
-        } else {
-            model.addAttribute("cartItemCount", 0);
-        }
-    }
 }

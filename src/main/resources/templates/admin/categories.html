@@ -20,6 +20,8 @@
                 <li><a href="/admin/products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
                 <li class="active"><a href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
                 <li><a href="/admin/brands"><i class="fas fa-trademark"></i> Thương hiệu</a></li>
+                <li><a href="/admin/banners"><i class="fas fa-image"></i> Quản lý Banner</a></li>
+                <li><a href="/admin/sports"><i class="fas fa-running"></i> Quản lý Môn Thể Thao</a></li>
                 <li><a href="/"><i class="fas fa-home"></i> Về trang chủ</a></li>
                 <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
             </ul>
@@ -48,23 +50,13 @@
                     <form th:action="@{/admin/categories}" method="post" th:object="${newCategory}">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="ten">Tên danh mục:</label>
-                                <input type="text" id="ten" th:field="*{ten}" required>
+                                <label for="ten">Tên danh mục *</label>
+                                <input type="text" id="ten" th:field="*{ten}" required placeholder="Nhập tên danh mục">
                             </div>
                             <div class="form-group">
-                                <label for="moTa">Mô tả:</label>
-                                <input type="text" id="moTa" th:field="*{moTa}">
+                                <label for="moTa">Mô tả</label>
+                                <input type="text" id="moTa" th:field="*{moTa}" placeholder="Mô tả danh mục">
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="danhMucCha">Danh mục cha (tùy chọn):</label>
-                            <select id="danhMucCha" th:field="*{danhMucCha}">
-                                <option value="">-- Chọn danh mục cha --</option>
-                                <option th:each="category : ${categories}" 
-                                        th:if="${category.danhMucCha == null}"
-                                        th:value="${category.id}" 
-                                        th:text="${category.ten}">Danh mục cha</option>
-                            </select>
                         </div>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Thêm danh mục
@@ -73,9 +65,8 @@
                 </div>
 
                 <!-- Categories List -->
-                <div class="data-table">
-                    <h3><i class="fas fa-list"></i> Danh sách danh mục</h3>
-                    <table>
+                <div class="table-container">
+                    <table class="admin-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -89,25 +80,28 @@
                         <tbody>
                             <tr th:each="category : ${categories}">
                                 <td th:text="${category.id}">1</td>
+                                <td th:text="${category.ten}">Tên danh mục</td>
+                                <td th:text="${category.moTa}">Mô tả</td>
+                                <td th:text="${category.danhMucCha != null ? category.danhMucCha.ten : 'Danh mục gốc'}">Danh mục gốc</td>
+                                <td th:text="${#temporals.format(category.ngayTao, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
                                 <td>
-                                    <strong th:text="${category.ten}">Tên danh mục</strong>
-                                    <span th:if="${category.danhMucCha == null}" class="badge badge-primary">Danh mục cha</span>
+                                    <div class="action-buttons">
+                                        <a th:href="@{/admin/categories/edit/{id}(id=${category.id})}" class="btn btn-sm btn-warning" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a th:href="@{/admin/categories/delete/{id}(id=${category.id})}" class="btn btn-sm btn-danger" title="Xóa"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
                                 </td>
-                                <td th:text="${category.moTa}">Mô tả danh mục</td>
-                                <td>
-                                    <span th:if="${category.danhMucCha != null}">
-                                        <span th:text="${category.danhMucCha.ten}">Danh mục cha</span>
-                                    </span>
-                                    <span th:if="${category.danhMucCha == null}" class="text-muted">--</span>
-                                </td>
-                                <td th:text="${#temporals.format(category.ngayTao, 'dd/MM/yyyy')}">01/01/2024</td>
-                                <td class="actions">
-                                    <button class="btn btn-sm btn-warning" title="Sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" title="Xóa">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(categories)}">
+                                <td colspan="6" class="text-center">
+                                    <div class="empty-state">
+                                        <i class="fas fa-tags fa-3x"></i>
+                                        <p>Chưa có danh mục nào</p>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -116,16 +110,5 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 300);
-            });
-        }, 5000);
-    </script>
 </body>
 </html>

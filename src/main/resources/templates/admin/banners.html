@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Banner - Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-cogs"></i> Admin Panel</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                <li><a href="/admin/products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
+                <li><a href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
+                <li><a href="/admin/brands"><i class="fas fa-trademark"></i> Thương hiệu</a></li>
+                <li class="active"><a href="/admin/banners"><i class="fas fa-image"></i> Quản lý Banner</a></li>
+                <li><a href="/admin/sports"><i class="fas fa-running"></i> Quản lý Môn Thể Thao</a></li>
+                <li><a href="/"><i class="fas fa-home"></i> Về trang chủ</a></li>
+                <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <div class="admin-header">
+                <h1><i class="fas fa-image"></i> Quản lý Banner</h1>
+                <div class="admin-user">
+                    <span th:if="${#authentication.principal instanceof T(com.example.datn.auth.CustomUserDetails)}">
+                        Xin chào, <strong th:text="${#authentication.principal.domainUser.ten}">Admin</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div class="admin-content">
+                <!-- Messages -->
+                <div th:if="${successMessage}" class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Actions -->
+                <div class="admin-actions">
+                    <a href="/admin/banners/add" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Thêm Banner
+                    </a>
+                    
+                    <!-- Search -->
+                    <form class="search-form" method="get">
+                        <div class="search-input">
+                            <input type="text" name="search" th:value="${search}" placeholder="Tìm kiếm banner...">
+                            <button type="submit"><i class="fas fa-search"></i></button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Banner List -->
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Hình ảnh</th>
+                                <th>Tên Banner</th>
+                                <th>Vị trí</th>
+                                <th>Thứ tự</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="banner : ${banners}">
+                                <td>
+                                    <div class="banner-preview">
+                                        <img th:src="${banner.hinhAnh}" th:alt="${banner.ten}" class="preview-image">
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="banner-info">
+                                        <strong th:text="${banner.ten}"></strong>
+                                        <small th:if="${banner.moTa}" th:text="${banner.moTa}" class="text-muted"></small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info" th:text="${banner.viTri}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${banner.thuTu}"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${banner.hoatDong}" class="badge badge-success">
+                                        <i class="fas fa-check"></i> Hoạt động
+                                    </span>
+                                    <span th:unless="${banner.hoatDong}" class="badge badge-danger">
+                                        <i class="fas fa-times"></i> Tạm dừng
+                                    </span>
+                                </td>
+                                <td th:text="${#temporals.format(banner.ngayTao, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a th:href="@{/admin/banners/edit/{id}(id=${banner.id})}" class="btn btn-sm btn-warning" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form th:action="@{/admin/banners/toggle/{id}(id=${banner.id})}" method="post" class="inline-form">
+                                            <button type="submit" class="btn btn-sm btn-info" title="Toggle trạng thái">
+                                                <i class="fas fa-toggle-on" th:if="${banner.hoatDong}"></i>
+                                                <i class="fas fa-toggle-off" th:unless="${banner.hoatDong}"></i>
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/admin/banners/delete/{id}(id=${banner.id})}" method="post" class="inline-form" 
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa banner này?')">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(banners)}">
+                                <td colspan="7" class="text-center">
+                                    <div class="empty-state">
+                                        <i class="fas fa-image fa-3x"></i>
+                                        <p>Chưa có banner nào</p>
+                                        <a href="/admin/banners/add" class="btn btn-primary">Thêm banner đầu tiên</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .banner-preview {
+            width: 60px;
+            height: 40px;
+            overflow: hidden;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .banner-info {
+            max-width: 200px;
+        }
+        
+        .banner-info strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .banner-info small {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .badge-danger {
+            background-color: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .badge-info {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .inline-form {
+            display: inline;
+        }
+        
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #64748b;
+        }
+        
+        .empty-state i {
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+        
+        .search-form {
+            margin-left: auto;
+        }
+        
+        .search-input {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 300px;
+        }
+        
+        .search-input input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .search-input button {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .search-input button:hover {
+            color: #2563eb;
+        }
+    </style>
+</body>
+</html>

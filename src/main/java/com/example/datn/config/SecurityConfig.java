@@ -27,13 +27,14 @@ public class SecurityConfig {
 		http
 			.csrf(csrf -> csrf.disable())
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+				.requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/uploads/**").permitAll()
 				.requestMatchers("/login", "/dang-nhap", "/error", "/register", "/dang-ky", "/verify").permitAll()
 				.requestMatchers("/", "/tim-kiem", "/san-pham/**", "/danh-muc/**", "/thuong-hieu/**").permitAll()
 				.requestMatchers("/admin/**").hasRole("Admin")
 				.requestMatchers("/thong-tin-ca-nhan/**").authenticated()
 				.requestMatchers("/don-hang-cua-toi/**").authenticated()
 				.requestMatchers("/yeu-thich/**").authenticated()
+				.requestMatchers("/upload-avatar", "/remove-avatar").authenticated()
 				.anyRequest().permitAll()
 			)
 			.formLogin(form -> form

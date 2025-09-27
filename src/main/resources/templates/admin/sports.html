@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Môn Thể Thao - Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-cogs"></i> Admin Panel</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                <li><a href="/admin/products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
+                <li><a href="/admin/categories"><i class="fas fa-tags"></i> Danh mục</a></li>
+                <li><a href="/admin/brands"><i class="fas fa-trademark"></i> Thương hiệu</a></li>
+                <li><a href="/admin/banners"><i class="fas fa-image"></i> Quản lý Banner</a></li>
+                <li class="active"><a href="/admin/sports"><i class="fas fa-running"></i> Quản lý Môn Thể Thao</a></li>
+                <li><a href="/"><i class="fas fa-home"></i> Về trang chủ</a></li>
+                <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <div class="admin-header">
+                <h1><i class="fas fa-running"></i> Quản lý Môn Thể Thao</h1>
+                <div class="admin-user">
+                    <span th:if="${#authentication.principal instanceof T(com.example.datn.auth.CustomUserDetails)}">
+                        Xin chào, <strong th:text="${#authentication.principal.domainUser.ten}">Admin</strong>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="admin-content">
+                <!-- Flash Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <a th:href="@{/admin/sports/add}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Thêm Môn Thể Thao
+                        </a>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select class="form-select" style="width: auto;" onchange="changeSorting()">
+                            <option value="ten" th:selected="${sortBy == 'ten'}">Sắp xếp theo tên</option>
+                            <option value="thuTu" th:selected="${sortBy == 'thuTu'}">Sắp xếp theo thứ tự</option>
+                            <option value="ngayTao" th:selected="${sortBy == 'ngayTao'}">Sắp xếp theo ngày tạo</option>
+                        </select>
+                        <select class="form-select" style="width: auto;" onchange="changeSorting()">
+                            <option value="asc" th:selected="${sortDir == 'asc'}">Tăng dần</option>
+                            <option value="desc" th:selected="${sortDir == 'desc'}">Giảm dần</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sports Table -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Hình ảnh</th>
+                                <th>Tên môn thể thao</th>
+                                <th>Mô tả</th>
+                                <th>Thứ tự</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="sport : ${sports}">
+                                <td th:text="${sport.id}">1</td>
+                                <td>
+                                    <img th:if="${sport.hinhAnh != null}" 
+                                         th:src="${sport.hinhAnh}" 
+                                         th:alt="${sport.ten}"
+                                         class="sport-thumbnail">
+                                    <span th:unless="${sport.hinhAnh != null}" class="text-muted">
+                                        <i class="fas fa-image"></i> Chưa có ảnh
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong th:text="${sport.ten}">Tên môn thể thao</strong>
+                                </td>
+                                <td>
+                                    <span th:text="${sport.moTa}" class="text-muted">Mô tả</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary" th:text="${sport.thuTu}">0</span>
+                                </td>
+                                <td>
+                                    <span th:if="${sport.hoatDong}" class="badge bg-success">
+                                        <i class="fas fa-check"></i> Hoạt động
+                                    </span>
+                                    <span th:unless="${sport.hoatDong}" class="badge bg-danger">
+                                        <i class="fas fa-times"></i> Tạm dừng
+                                    </span>
+                                </td>
+                                <td th:text="${#temporals.format(sport.ngayTao, 'dd/MM/yyyy HH:mm')}">01/01/2024</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a th:href="@{/admin/sports/edit/{id}(id=${sport.id})}" 
+                                           class="btn btn-sm btn-outline-primary" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-warning" 
+                                                th:onclick="'toggleStatus(' + ${sport.id} + ')'"
+                                                th:title="${sport.hoatDong ? 'Tạm dừng' : 'Kích hoạt'}">
+                                            <i class="fas" th:class="${sport.hoatDong ? 'fa-pause' : 'fa-play'}"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger" 
+                                                th:onclick="'deleteSport(' + ${sport.id} + ')'"
+                                                title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav th:if="${totalPages > 1}" aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/sports(page=${currentPage - 1}, sortBy=${sortBy}, sortDir=${sortDir})}">
+                                <i class="fas fa-chevron-left"></i> Trước
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/admin/sports(page=${i}, sortBy=${sortBy}, sortDir=${sortDir})}" 
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/sports(page=${currentPage + 1}, sortBy=${sortBy}, sortDir=${sortDir})}">
+                                Sau <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- No Data Message -->
+                <div th:if="${sports.isEmpty()}" class="text-center py-5">
+                    <i class="fas fa-running fa-3x text-muted mb-3"></i>
+                    <h4>Chưa có môn thể thao nào</h4>
+                    <p class="text-muted">Hãy thêm môn thể thao đầu tiên!</p>
+                    <a th:href="@{/admin/sports/add}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Thêm Môn Thể Thao
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa môn thể thao này không?</p>
+                    <p class="text-danger"><small>Hành động này không thể hoàn tác!</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <form id="deleteForm" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function changeSorting() {
+            const sortBy = document.querySelector('select[onchange="changeSorting()"]:first-of-type').value;
+            const sortDir = document.querySelector('select[onchange="changeSorting()"]:last-of-type').value;
+            window.location.href = `/admin/sports?sortBy=${sortBy}&sortDir=${sortDir}`;
+        }
+
+        function deleteSport(id) {
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = `/admin/sports/delete/${id}`;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        function toggleStatus(id) {
+            if (confirm('Bạn có chắc chắn muốn thay đổi trạng thái môn thể thao này không?')) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = `/admin/sports/toggle/${id}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+
+    <style>
+        .sport-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dropdown Menu - ACTIVEWEAR STORE®</title>
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            padding-top: 80px; /* Tránh bị che bởi header cố định */
+        }
+        
+        /* Header Styles - FIXED POSITION */
+        .header {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            overflow: visible;
+            width: 100%;
+            transition: all 0.3s ease;
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+        
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            overflow: visible;
+            position: relative;
+            gap: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            overflow: visible;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: #fbbf24;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .logo-letter {
+            font-size: 24px;
+            font-weight: 900;
+            color: #000000;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+        
+        .logo-line1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fbbf24;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        
+        .logo-line2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fbbf24;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+            font-style: italic;
+        }
+        
+        .logo-line2 sup {
+            font-size: 10px;
+            vertical-align: super;
+        }
+        
+        /* Navigation - NEW POSITION */
+        .main-nav {
+            flex: 1;
+            padding: 0;
+            margin: 0 20px;
+        }
+        
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-nav a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            padding: 10px 0;
+            transition: color 0.3s;
+            position: relative;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+        }
+        
+        .main-nav a:hover {
+            color: #2563eb;
+        }
+        
+        /* Dropdown Styles */
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .dropdown-toggle i {
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+        
+        .dropdown:hover .dropdown-toggle i {
+            transform: rotate(180deg);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            z-index: 1000;
+            padding: 8px 0;
+            margin-top: 5px;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-menu li {
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .dropdown-menu li:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 16px;
+            color: #374151;
+            transition: all 0.3s;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 500;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 4px;
+            margin: 2px 8px;
+        }
+        
+        .dropdown-menu a:hover {
+            background: #f8fafc;
+            color: #2563eb;
+        }
+        
+        /* Search Bar - SMALLER SIZE */
+        .search-bar {
+            flex: 0 0 auto;
+            max-width: 200px;
+            margin: 0;
+        }
+        
+        .search-bar form {
+            display: flex;
+            position: relative;
+        }
+        
+        .search-bar input {
+            flex: 1;
+            padding: 8px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 20px;
+            font-size: 12px;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 150px;
+        }
+        
+        .search-bar input:focus {
+            border-color: #2563eb;
+        }
+        
+        .search-bar button {
+            position: absolute;
+            right: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 12px;
+        }
+        
+        .search-bar button:hover {
+            background: #1d4ed8;
+        }
+        
+        /* Header Actions */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .cart-btn, .login-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: #f8fafc;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .cart-btn:hover, .login-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .cart-count {
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Content để test scroll */
+        .content {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        
+        .test-section p {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        .success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .info {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .demo-dropdown {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .demo-dropdown h3 {
+            margin: 0 0 15px 0;
+            color: #1e293b;
+        }
+        
+        .demo-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .demo-item {
+            padding: 8px 12px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            color: #374151;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-top">
+                <!-- Logo bên trái -->
+                <div class="logo">
+                    <div class="logo-icon">
+                        <span class="logo-letter">A</span>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-line1">ACTIVEWEAR</div>
+                        <div class="logo-line2">STORE<sup>®</sup></div>
+                    </div>
+                </div>
+                
+                <!-- Navigation ở giữa với dropdown -->
+                <nav class="main-nav">
+                    <ul>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">THƯƠNG HIỆU <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Nike</a></li>
+                                <li><a href="#">Adidas</a></li>
+                                <li><a href="#">Puma</a></li>
+                                <li><a href="#">Under Armour</a></li>
+                                <li><a href="#">New Balance</a></li>
+                                <li><a href="#">Reebok</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">MÔN THỂ THAO <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Bóng đá</a></li>
+                                <li><a href="#">Bóng rổ</a></li>
+                                <li><a href="#">Tennis</a></li>
+                                <li><a href="#">Chạy bộ</a></li>
+                                <li><a href="#">Gym</a></li>
+                                <li><a href="#">Yoga</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#section3">SẢN PHẨM MỚI</a></li>
+                        <li><a href="#section4">NAM</a></li>
+                        <li><a href="#section5">NỮ</a></li>
+                        <li><a href="#section6">TRẺ EM</a></li>
+                        <li><a href="#section7">OUTLET</a></li>
+                    </ul>
+                </nav>
+                
+                <!-- Search bar thu nhỏ bên phải -->
+                <div class="search-bar">
+                    <form action="#" method="get">
+                        <input type="text" name="q" placeholder="Tìm kiếm...">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+                
+                <!-- Header actions -->
+                <div class="header-actions">
+                    <a href="#" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        <span class="cart-count">3</span>
+                    </a>
+                    <a href="#" class="login-btn">
+                        <i class="fas fa-user"></i> Đăng nhập
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="test-section">
+            <h2>🎯 Test Dropdown Menu</h2>
+            <div class="status success">
+                <strong>✅ Dropdown menu đã được cấu hình!</strong><br>
+                Di chuột vào "THƯƠNG HIỆU" và "MÔN THỂ THAO" để xem dropdown menu.
+            </div>
+            
+            <div class="demo-dropdown">
+                <h3>🏷️ Demo Thương hiệu (từ database):</h3>
+                <div class="demo-items">
+                    <div class="demo-item">Nike</div>
+                    <div class="demo-item">Adidas</div>
+                    <div class="demo-item">Puma</div>
+                    <div class="demo-item">Under Armour</div>
+                    <div class="demo-item">New Balance</div>
+                    <div class="demo-item">Reebok</div>
+                </div>
+            </div>
+            
+            <div class="demo-dropdown">
+                <h3>⚽ Demo Môn thể thao (từ database):</h3>
+                <div class="demo-items">
+                    <div class="demo-item">Bóng đá</div>
+                    <div class="demo-item">Bóng rổ</div>
+                    <div class="demo-item">Tennis</div>
+                    <div class="demo-item">Chạy bộ</div>
+                    <div class="demo-item">Gym</div>
+                    <div class="demo-item">Yoga</div>
+                </div>
+            </div>
+            
+            <p>
+                <strong>🎨 Features:</strong><br>
+                • <strong>Hover effect:</strong> Di chuột để hiển thị dropdown<br>
+                • <strong>Icon rotation:</strong> Mũi tên xoay 180° khi hover<br>
+                • <strong>Smooth animation:</strong> Hiệu ứng mượt mà<br>
+                • <strong>Database data:</strong> Dữ liệu từ database thông qua Thymeleaf<br>
+                • <strong>Responsive:</strong> Tự động điều chỉnh trên mobile
+            </p>
+        </div>
+
+        <div class="test-section" id="section3">
+            <h2>🆕 Test Section 3 - SẢN PHẨM MỚI</h2>
+            <p>Dropdown menu hoạt động hoàn hảo!</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+
+        <div class="test-section" id="section4">
+            <h2>👨 Test Section 4 - NAM</h2>
+            <p>Hover vào "THƯƠNG HIỆU" để xem dropdown!</p>
+            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+        </div>
+
+        <div class="test-section" id="section5">
+            <h2>👩 Test Section 5 - NỮ</h2>
+            <p>Hover vào "MÔN THỂ THAO" để xem dropdown!</p>
+            <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.</p>
+        </div>
+
+        <div class="test-section" id="section6">
+            <h2>👶 Test Section 6 - TRẺ EM</h2>
+            <p>Dropdown menu với dữ liệu từ database!</p>
+            <p>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.</p>
+        </div>
+
+        <div class="test-section" id="section7">
+            <h2>🏷️ Test Section 7 - OUTLET</h2>
+            <p>Test hoàn chỉnh dropdown menu!</p>
+            <p>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</p>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 Test Instructions</h2>
+            <div class="status info">
+                <strong>📋 Hướng dẫn test dropdown menu:</strong>
+                <ol>
+                    <li><strong>Hover "THƯƠNG HIỆU":</strong> Xem dropdown với danh sách thương hiệu</li>
+                    <li><strong>Hover "MÔN THỂ THAO":</strong> Xem dropdown với danh sách môn thể thao</li>
+                    <li><strong>Icon rotation:</strong> Mũi tên xoay khi hover</li>
+                    <li><strong>Click items:</strong> Click vào các item trong dropdown</li>
+                    <li><strong>Responsive:</strong> Test trên mobile và desktop</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scroll for navigation links
+        document.querySelectorAll('.main-nav a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -7,7 +7,9 @@ import com.example.datn.favorite.FavoriteService;
 import com.example.datn.product.SanPham;
 import com.example.datn.product.DanhMuc;
 import com.example.datn.product.ThuongHieu;
+import com.example.datn.sport.DanhMucMonTheThao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,16 +21,20 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-public class HomeController {
+public class HomeController extends BaseController {
 
     @Autowired
     private HomeService homeService;
 
     @Autowired
-    private CartService cartService;
-
-    @Autowired
     private FavoriteService favoriteService;
+    
+    @Autowired
+    @Qualifier("webBannerService")
+    private BannerService bannerService;
+    
+    @Autowired
+    private com.example.datn.sport.DanhMucMonTheThaoRepository danhMucMonTheThaoRepository;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -59,14 +65,27 @@ public class HomeController {
         // Lấy sản phẩm khuyến mãi (8 sản phẩm đầu tiên)
         Page<SanPham> sanPhamKhuyenMai = homeService.getSanPhamKhuyenMai(0, 8);
         model.addAttribute("sanPhamKhuyenMai", sanPhamKhuyenMai.getContent());
+        
+        // Lấy banner chính
+        model.addAttribute("mainBanners", bannerService.getMainBanners());
+        
+        // Lấy banner header
+        model.addAttribute("headerBanners", bannerService.getHeaderBanners());
+        
+        // Lấy banner sidebar
+        model.addAttribute("sidebarBanners", bannerService.getSidebarBanners());
 
         // Lấy danh mục cha cho navigation
         List<DanhMuc> danhMucCha = homeService.getDanhMucCha();
         model.addAttribute("danhMucCha", danhMucCha);
-
+        
         // Lấy thương hiệu cho navigation
         List<ThuongHieu> thuongHieu = homeService.getAllThuongHieu();
         model.addAttribute("thuongHieu", thuongHieu);
+        
+        // Lấy danh mục môn thể thao cho navigation
+        List<DanhMucMonTheThao> danhMucMonTheThao = danhMucMonTheThaoRepository.findAllActiveOrderByThuTu();
+        model.addAttribute("danhMucMonTheThao", danhMucMonTheThao);
 
         return "index";
     }
@@ -234,6 +253,44 @@ public class HomeController {
         
         return "contact";
     }
+    
+    @GetMapping("/mon-the-thao/{id}")
+    public String monTheThao(@PathVariable Long id,
+                            @RequestParam(value = "page", defaultValue = "0") int page,
+                            @RequestParam(value = "size", defaultValue = "12") int size,
+                            Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        model.addAttribute("currentUser", authentication);
+        addCartInfoToModel(model, authentication);
+        
+        // Thêm dữ liệu navigation
+        List<DanhMuc> danhMucCha = homeService.getDanhMucCha();
+        model.addAttribute("danhMucCha", danhMucCha);
+        
+        List<ThuongHieu> thuongHieu = homeService.getAllThuongHieu();
+        model.addAttribute("thuongHieu", thuongHieu);
+        
+        List<DanhMucMonTheThao> danhMucMonTheThao = danhMucMonTheThaoRepository.findAllActiveOrderByThuTu();
+        model.addAttribute("danhMucMonTheThao", danhMucMonTheThao);
+        
+        // Lấy thông tin môn thể thao
+        com.example.datn.sport.DanhMucMonTheThao monTheThao = danhMucMonTheThaoRepository.findById(id).orElse(null);
+        if (monTheThao == null) {
+            return "error/404";
+        }
+        
+        // Lấy sản phẩm theo môn thể thao (có thể cần tạo method mới trong HomeService)
+        // Tạm thời lấy tất cả sản phẩm
+        Page<SanPham> sanPhamTheoMonTheThao = homeService.getSanPhamMoiNhat(page, size);
+        
+        model.addAttribute("monTheThao", monTheThao);
+        model.addAttribute("sanPhamTheoMonTheThao", sanPhamTheoMonTheThao);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", sanPhamTheoMonTheThao.getTotalPages());
+        model.addAttribute("id", id);
+        
+        return "sport";
+    }
 
     // Helper method để thêm thông tin user vào model
     private void addUserInfoToModel(Model model, Authentication authentication) {
@@ -243,20 +300,5 @@ public class HomeController {
         }
     }
 
-    // Helper method để thêm thông tin giỏ hàng vào model
-    private void addCartInfoToModel(Model model, Authentication authentication) {
-        NguoiDung nguoiDung = AuthHelper.getCurrentUser(authentication);
-        if (nguoiDung != null) {
-            try {
-                int cartItemCount = cartService.getCartItemCount(nguoiDung);
-                model.addAttribute("cartItemCount", cartItemCount);
-            } catch (Exception e) {
-                // Nếu có lỗi, set cartItemCount = 0
-                model.addAttribute("cartItemCount", 0);
-            }
-        } else {
-            model.addAttribute("cartItemCount", 0);
-        }
-    }
 
 } 

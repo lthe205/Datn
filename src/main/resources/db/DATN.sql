@@ -52,6 +52,10 @@ CREATE TABLE dbo.danh_muc (
     id         BIGINT IDENTITY(1,1) NOT NULL,
     ten        NVARCHAR(255) NOT NULL,
     mo_ta      NVARCHAR(255) NULL,
+    hinh_anh   NVARCHAR(500) NULL,
+    mau_sac    NVARCHAR(50)  NULL,
+    thu_tu     INT           NOT NULL DEFAULT 0,
+    hoat_dong  BIT           NOT NULL DEFAULT 1,
     id_cha     BIGINT        NULL,
     ngay_tao   DATETIME2(0)  NOT NULL CONSTRAINT DF_danh_muc_ngay_tao DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT PK_danh_muc PRIMARY KEY CLUSTERED (id),
@@ -773,3 +777,78 @@ ALTER TABLE dbo.nguoi_dung
 PRINT N'✅ Recreated DF_nguoi_dung_provider';
 
 PRINT N'🎉 Hoàn tất sửa đổi tương thích với Hibernate!';
+
+
+-- =============================================
+-- BẢNG DANH MỤC MÔN THỂ THAO
+-- =============================================
+PRINT N'🏃 Tạo bảng danh mục môn thể thao...';
+
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='danh_muc_mon_the_thao' AND xtype='U')
+BEGIN
+    CREATE TABLE dbo.danh_muc_mon_the_thao (
+        id BIGINT IDENTITY(1,1) NOT NULL,
+        ten NVARCHAR(255) NOT NULL,
+        mo_ta NVARCHAR(500) NULL,
+        hinh_anh NVARCHAR(500) NULL,
+        thu_tu INT NOT NULL DEFAULT 0,
+        hoat_dong BIT NOT NULL DEFAULT 1,
+        ngay_tao DATETIME2 NOT NULL DEFAULT GETDATE(),
+        ngay_cap_nhat DATETIME2 NULL,
+        CONSTRAINT PK_danh_muc_mon_the_thao PRIMARY KEY (id),
+        CONSTRAINT UQ_danh_muc_mon_the_thao_ten UNIQUE (ten)
+    );
+    
+    -- Thêm dữ liệu mẫu các môn thể thao
+    INSERT INTO dbo.danh_muc_mon_the_thao (ten, mo_ta, hinh_anh, thu_tu, hoat_dong) VALUES
+    (N'Pickleball', N'Bộ môn thể thao kết hợp giữa tennis, cầu lông và bóng bàn', N'/images/sports/pickleball.jpg', 1, 1),
+    (N'Cầu lông', N'Môn thể thao sử dụng vợt và cầu lông', N'/images/sports/badminton.jpg', 2, 1),
+    (N'Golf', N'Môn thể thao đánh bóng vào lỗ bằng gậy golf', N'/images/sports/golf.jpg', 3, 1),
+    (N'Bóng đá', N'Môn thể thao đồng đội phổ biến nhất thế giới', N'/images/sports/football.jpg', 4, 1),
+    (N'Chạy bộ', N'Môn thể thao cá nhân đơn giản và hiệu quả', N'/images/sports/running.jpg', 5, 1),
+    (N'Tennis', N'Môn thể thao sử dụng vợt và bóng tennis', N'/images/sports/tennis.jpg', 6, 1),
+    (N'Bóng rổ', N'Môn thể thao đồng đội với bóng rổ', N'/images/sports/basketball.jpg', 7, 1),
+    (N'Tập luyện', N'Trang phục và phụ kiện cho các hoạt động tập luyện', N'/images/sports/training.jpg', 8, 1);
+    
+    PRINT N'✅ Tạo bảng danh mục môn thể thao thành công!';
+END
+ELSE
+BEGIN
+    PRINT N'⚠️ Bảng danh mục môn thể thao đã tồn tại!';
+END
+
+-- =============================================
+-- BẢNG BANNER
+-- =============================================
+PRINT N'📸 Tạo bảng banner...';
+
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='banner' AND xtype='U')
+BEGIN
+    CREATE TABLE dbo.banner (
+        id BIGINT IDENTITY(1,1) NOT NULL,
+        ten NVARCHAR(255) NOT NULL,
+        hinh_anh NVARCHAR(500) NOT NULL,
+        mo_ta NVARCHAR(1000) NULL,
+        link NVARCHAR(500) NULL,
+        vi_tri NVARCHAR(50) NOT NULL,
+        thu_tu INT NOT NULL DEFAULT 0,
+        hoat_dong BIT NOT NULL DEFAULT 1,
+        ngay_tao DATETIME2 NOT NULL DEFAULT GETDATE(),
+        ngay_cap_nhat DATETIME2 NULL,
+        CONSTRAINT PK_banner PRIMARY KEY (id)
+    );
+    
+    -- Thêm dữ liệu mẫu
+    INSERT INTO dbo.banner (ten, hinh_anh, mo_ta, link, vi_tri, thu_tu, hoat_dong) VALUES
+    (N'Banner chính 1', N'/images/banner/slider_1.jpg', N'Banner quảng cáo sản phẩm mới', N'/', N'main', 1, 1),
+    (N'Banner chính 2', N'/images/banner/slider_2.jpg', N'Banner khuyến mãi đặc biệt', N'/', N'main', 2, 1),
+    (N'Banner chính 3', N'/images/banner/slider_3.jpg', N'Banner giới thiệu thương hiệu', N'/', N'main', 3, 1),
+    (N'Banner header', N'/images/banner/header_banner.jpg', N'Banner đầu trang', N'/', N'header', 1, 1),
+    (N'Banner sidebar', N'/images/banner/sidebar_banner.jpg', N'Banner thanh bên', N'/', N'sidebar', 1, 1);
+    
+    PRINT N'✅ Tạo bảng banner thành công!';
+END
+ELSE
+BEGIN
+    PRINT N'⚠️ Bảng banner đã tồn tại!';
+END

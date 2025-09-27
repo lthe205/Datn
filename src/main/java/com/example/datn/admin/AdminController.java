@@ -2,6 +2,7 @@ package com.example.datn.admin;
 
 import com.example.datn.product.*;
 import com.example.datn.user.*;
+import com.example.datn.sport.DanhMucMonTheThaoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -30,11 +33,12 @@ public class AdminController {
     private final DanhMucRepository danhMucRepository;
     private final ThuongHieuRepository thuongHieuRepository;
     private final BienTheSanPhamRepository bienTheSanPhamRepository;
+    private final DanhMucMonTheThaoRepository danhMucMonTheThaoRepository;
 
     public AdminController(AdminService adminService, NguoiDungRepository nguoiDungRepository, 
                           VaiTroRepository vaiTroRepository, SanPhamRepository sanPhamRepository,
                           DanhMucRepository danhMucRepository, ThuongHieuRepository thuongHieuRepository,
-                          BienTheSanPhamRepository bienTheSanPhamRepository) {
+                          BienTheSanPhamRepository bienTheSanPhamRepository, DanhMucMonTheThaoRepository danhMucMonTheThaoRepository) {
         this.adminService = adminService;
         this.nguoiDungRepository = nguoiDungRepository;
         this.vaiTroRepository = vaiTroRepository;
@@ -42,6 +46,7 @@ public class AdminController {
         this.danhMucRepository = danhMucRepository;
         this.thuongHieuRepository = thuongHieuRepository;
         this.bienTheSanPhamRepository = bienTheSanPhamRepository;
+        this.danhMucMonTheThaoRepository = danhMucMonTheThaoRepository;
     }
 
     // Check if user is admin
@@ -61,6 +66,12 @@ public class AdminController {
         model.addAttribute("recentUsers", adminService.getRecentUsers(5));
         model.addAttribute("topProducts", adminService.getTopProducts(5));
         
+        // Thêm thống kê môn thể thao
+        long totalSports = danhMucMonTheThaoRepository.count();
+        long activeSports = danhMucMonTheThaoRepository.findByHoatDong(true).size();
+        model.addAttribute("totalSports", totalSports);
+        model.addAttribute("activeSports", activeSports);
+        
         return "admin/dashboard";
     }
 
@@ -68,7 +79,9 @@ public class AdminController {
     public String manageUsers(Model model, Authentication auth,
                              @RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "10") int size,
-                             @RequestParam(required = false) String search) {
+                             @RequestParam(required = false) String search,
+                             @RequestParam(required = false) Long role,
+                             @RequestParam(required = false) String status) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
         }
@@ -76,20 +89,49 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size);
         Page<NguoiDung> users;
         
-        if (search != null && !search.trim().isEmpty()) {
-            users = nguoiDungRepository.findByTenContainingOrEmailContaining(search, search, pageable);
-        } else {
-            users = nguoiDungRepository.findAll(pageable);
-        }
+        // Apply filters using the new query method
+        users = nguoiDungRepository.findWithFilters(
+            search != null && !search.trim().isEmpty() ? search : null,
+            role,
+            status,
+            pageable
+        );
+
+        // Calculate statistics
+        long activeUsers = nguoiDungRepository.countByHoatDong(true);
+        long lockedUsers = nguoiDungRepository.countByBiKhoa(true);
+        long newUsers = nguoiDungRepository.countByNgayTaoAfter(LocalDateTime.now().minusDays(1));
 
         model.addAttribute("users", users);
         model.addAttribute("roles", vaiTroRepository.findAll());
         model.addAttribute("search", search);
+        model.addAttribute("selectedRole", role);
+        model.addAttribute("selectedStatus", status);
+        
+        // Statistics
+        model.addAttribute("activeUsers", activeUsers);
+        model.addAttribute("lockedUsers", lockedUsers);
+        model.addAttribute("newUsers", newUsers);
         
         return "admin/users";
     }
 
-    @PostMapping("/users/{id}/toggle-status")
+    @GetMapping("/users/{id}")
+    public String viewUser(@PathVariable Long id, Authentication auth, Model model) {
+        if (!isAdmin(auth)) {
+            return "redirect:/dang-nhap";
+        }
+
+        NguoiDung user = nguoiDungRepository.findById(id).orElse(null);
+        if (user == null) {
+            return "redirect:/admin/users";
+        }
+
+        model.addAttribute("user", user);
+        return "admin/user-detail";
+    }
+
+    @PostMapping("/users/{id}/toggle")
     public String toggleUserStatus(@PathVariable Long id, Authentication auth, RedirectAttributes redirectAttributes) {
         if (!isAdmin(auth)) {
             return "redirect:/dang-nhap";
@@ -103,13 +145,27 @@ public class AdminController {
                 nguoiDungRepository.save(user);
                 
                 String status = user.isHoatDong() ? "kích hoạt" : "vô hiệu hóa";
-                redirectAttributes.addFlashAttribute("success", "Đã " + status + " tài khoản: " + user.getEmail());
+                redirectAttributes.addFlashAttribute("successMessage", "Đã " + status + " tài khoản: " + user.getEmail());
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra: " + e.getMessage());
         }
 
         return "redirect:/admin/users";
+    }
+
+    @GetMapping("/users/export")
+    public void exportUsers(@RequestParam(required = false) String search,
+                           @RequestParam(required = false) Long role,
+                           @RequestParam(required = false) String status,
+                           HttpServletResponse response) throws IOException {
+        // This is a placeholder for Excel export functionality
+        // You would implement actual Excel export here
+        response.setContentType("application/vnd.ms-excel");
+        response.setHeader("Content-Disposition", "attachment; filename=users.xlsx");
+        
+        // For now, just return a simple text response
+        response.getWriter().write("Excel export functionality would be implemented here");
     }
 
     @PostMapping("/users/{id}/change-role")
@@ -364,13 +420,14 @@ public class AdminController {
         try {
             category.setNgayTao(LocalDateTime.now());
             danhMucRepository.save(category);
-            redirectAttributes.addFlashAttribute("success", "Đã thêm danh mục: " + category.getTen());
+            redirectAttributes.addFlashAttribute("successMessage", "Đã thêm danh mục: " + category.getTen());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra: " + e.getMessage());
         }
 
         return "redirect:/admin/categories";
     }
+
 
     @GetMapping("/brands")
     public String manageBrands(Model model, Authentication auth) {

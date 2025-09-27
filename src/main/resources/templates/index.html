@@ -13,12 +13,50 @@
     <header class="header">
         <div class="container">
             <div class="header-top">
-                <div class="logo">
-                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
-                </div>
+                <a th:href="@{/}" class="logo">
+                    <div class="logo-icon">
+                        <span class="logo-letter">A</span>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-line1">ACTIVEWEAR</div>
+                        <div class="logo-line2">STORE<sup>®</sup></div>
+                    </div>
+                </a>
+                <nav class="main-nav">
+                    <ul>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">THƯƠNG HIỆU <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                    <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                                </li>
+                                <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                    <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">MÔN THỂ THAO <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li th:each="monTheThao : ${danhMucMonTheThao}" th:if="${danhMucMonTheThao != null and !danhMucMonTheThao.isEmpty()}">
+                                    <a th:href="@{/mon-the-thao/{id}(id=${monTheThao.id})}" th:text="${monTheThao.ten}">Tên môn thể thao</a>
+                                </li>
+                                <li th:if="${danhMucMonTheThao == null or danhMucMonTheThao.isEmpty()}">
+                                    <a href="#" style="color: #999; cursor: default;">Chưa có môn thể thao</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><a th:href="@{/san-pham-moi}">SẢN PHẨM MỚI</a></li>
+                        <li><a th:href="@{/nam}">NAM</a></li>
+                        <li><a th:href="@{/nu}">NỮ</a></li>
+                        <li><a th:href="@{/tre-em}">TRẺ EM</a></li>
+                        <li><a th:href="@{/outlet}">OUTLET</a></li>
+                        <li><a th:href="@{/lien-he}">LIÊN HỆ</a></li>
+                    </ul>
+                </nav>
                 <div class="search-bar">
                     <form th:action="@{/tim-kiem}" method="get">
-                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm..." th:value="${keyword}">
+                        <input type="text" name="q" placeholder="Tìm kiếm..." th:value="${keyword}">
                         <button type="submit"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
@@ -54,52 +92,18 @@
                     </div>
                 </div>
             </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a th:href="@{/}">Trang chủ</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
-                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
-                            </li>
-                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
-                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
-                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
-                            </li>
-                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
-                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
-                    <li><a th:href="@{/lien-he}">Liên hệ</a></li>
-                </ul>
-		</nav>
         </div>
 	</header>
 
     <!-- Banner Slider -->
-    <section class="banner-slider">
+    <section class="banner-slider" th:if="${mainBanners != null and !mainBanners.isEmpty()}">
         <div class="slider-container">
-            <div class="slide active">
-                <img src="/images/banner/slider_1.jpg" alt="Banner 1">
-            </div>
-            <div class="slide">
-                <img src="/images/banner/slider_2.jpg" alt="Banner 2">
-            </div>
-            <div class="slide">
-                <img src="/images/banner/slider_3.jpg" alt="Banner 3">
-            </div>
-            <div class="slide">
-                <img src="/images/banner/slider_4.jpg" alt="Banner 4">
+            <div th:each="banner, iterStat : ${mainBanners}" 
+                 th:class="${'slide' + (iterStat.first ? ' active' : '')}">
+                <a th:href="${banner.link != null ? banner.link : '#'}" th:if="${banner.link != null}">
+                    <img th:src="${banner.hinhAnh}" th:alt="${banner.ten}">
+                </a>
+                <img th:src="${banner.hinhAnh}" th:alt="${banner.ten}" th:unless="${banner.link != null}">
             </div>
         </div>
         
@@ -114,11 +118,10 @@
         </div>
         
         <!-- Slider Indicators -->
-        <div class="slider-indicators">
-            <span class="indicator active" onclick="currentSlide(1)"></span>
-            <span class="indicator" onclick="currentSlide(2)"></span>
-            <span class="indicator" onclick="currentSlide(3)"></span>
-            <span class="indicator" onclick="currentSlide(4)"></span>
+        <div class="slider-indicators" th:if="${mainBanners != null and mainBanners.size() > 1}">
+            <span th:each="banner, iterStat : ${mainBanners}" 
+                  th:class="${'indicator' + (iterStat.first ? ' active' : '')}" 
+                  th:onclick="'currentSlide(' + ${iterStat.index + 1} + ')'"></span>
         </div>
     </section>
 
@@ -246,9 +249,11 @@
             showSlide(currentSlideIndex);
         }
 
-        // Auto slide every 5 seconds
+        // Auto slide every 5 seconds (only if more than 1 slide)
         function autoSlide() {
-            changeSlide(1);
+            if (totalSlides > 1) {
+                changeSlide(1);
+            }
         }
 
 

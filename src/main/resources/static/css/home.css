@@ -25,6 +25,8 @@ body {
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+    /* Thêm padding-top để tránh bị che bởi header cố định */
+    padding-top: 80px;
 }
 
 
@@ -46,10 +48,17 @@ body {
 .header {
     background: #fff;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
     overflow: visible;
+    width: 100%;
+    transition: all 0.3s ease;
+    /* Đảm bảo header luôn hiển thị */
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 .header-top {
@@ -60,22 +69,77 @@ body {
     border-bottom: 1px solid #eee;
     overflow: visible;
     position: relative;
+    gap: 20px;
 }
 
-.logo h1 {
-    color: #2563eb;
-    font-size: 1.8rem;
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.3s ease;
+}
+
+.logo:hover {
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+.logo-icon {
+    width: 50px;
+    height: 50px;
+    background: #fbbf24;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.logo-letter {
+    font-size: 24px;
+    font-weight: 900;
+    color: #000000;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.logo-line1 {
+    font-size: 18px;
     font-weight: 700;
+    color: #fbbf24;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
 }
 
-.logo i {
-    margin-right: 8px;
+.logo-line2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fbbf24;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+    font-style: italic;
+}
+
+.logo-line2 sup {
+    font-size: 10px;
+    vertical-align: super;
 }
 
 .search-bar {
-    flex: 1;
-    max-width: 500px;
-    margin: 0 30px;
+    flex: 0 0 auto;
+    max-width: 200px;
+    margin: 0;
 }
 
 .search-bar form {
@@ -85,12 +149,13 @@ body {
 
 .search-bar input {
     flex: 1;
-    padding: 12px 20px;
+    padding: 8px 15px;
     border: 2px solid #e5e7eb;
-    border-radius: 25px;
-    font-size: 14px;
+    border-radius: 20px;
+    font-size: 12px;
     outline: none;
     transition: border-color 0.3s;
+    width: 150px;
 }
 
 .search-bar input:focus {
@@ -99,16 +164,17 @@ body {
 
 .search-bar button {
     position: absolute;
-    right: 5px;
+    right: 3px;
     top: 50%;
     transform: translateY(-50%);
     background: #2563eb;
     color: white;
     border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
+    padding: 6px 10px;
+    border-radius: 15px;
     cursor: pointer;
     transition: background 0.3s;
+    font-size: 12px;
 }
 
 .search-bar button:hover {
@@ -246,13 +312,19 @@ body {
 
 /* Navigation */
 .main-nav {
-    padding: 15px 0;
+    flex: 1;
+    padding: 0;
+    margin: 0 20px;
 }
 
 .main-nav ul {
     display: flex;
     list-style: none;
-    gap: 30px;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
 }
 
 .main-nav a {
@@ -274,6 +346,21 @@ body {
     position: relative;
 }
 
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dropdown-toggle i {
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.dropdown:hover .dropdown-toggle i {
+    transform: rotate(180deg);
+}
+
 .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -287,9 +374,11 @@ body {
     transform: translateY(-10px);
     transition: all 0.3s;
     z-index: 1000;
+    padding: 8px 0;
+    margin-top: 5px;
 }
 
-.dropdown.active .dropdown-menu {
+.dropdown:hover .dropdown-menu {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -305,12 +394,15 @@ body {
 
 .dropdown-menu a {
     display: block;
-    padding: 12px 20px;
+    padding: 10px 16px;
     color: #374151;
-    transition: background 0.3s;
+    transition: all 0.3s;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: 500;
     text-decoration: none;
+    font-size: 14px;
+    border-radius: 4px;
+    margin: 2px 8px;
 }
 
 .dropdown-menu a:hover {
@@ -845,6 +937,27 @@ body {
     .header-top {
         flex-direction: column;
         gap: 20px;
+    }
+
+    .logo {
+        gap: 12px;
+    }
+
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .logo-letter {
+        font-size: 20px;
+    }
+
+    .logo-line1 {
+        font-size: 16px;
+    }
+
+    .logo-line2 {
+        font-size: 14px;
     }
 
     .search-bar {
@@ -1521,6 +1634,7 @@ body {
 
 
 
+
 /* Sports Categories Responsive */
 @media (max-width: 1600px) {
     .sports-container {
@@ -1549,44 +1663,36 @@ body {
         padding: 60px 0;
     }
     
-    .sports-title {
-        font-size: 1.8rem;
-        margin-bottom: 40px;
-    }
-    
     .sports-container {
         gap: 40px;
-        padding: 0 30px;
-        overflow-x: auto; /* Cho phép scroll ngang trên mobile */
-        justify-content: flex-start;
+        padding: 0 20px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     
     .sport-card {
         width: 180px;
-        flex-shrink: 0;
     }
     
+    .sports-title {
+        font-size: 1.8rem;
+        margin-bottom: 40px;
+    }
 }
 
 @media (max-width: 480px) {
-    .sports-categories {
-        padding: 40px 0;
+    .sports-container {
+        gap: 20px;
+        padding: 0 10px;
+    }
+    
+    .sport-card {
+        width: 150px;
     }
     
     .sports-title {
         font-size: 1.5rem;
-        margin-bottom: 30px;
     }
-    
-    .sports-container {
-        gap: 30px;
-        padding: 0 20px;
-    }
-    
-    .sport-card {
-        width: 160px;
-    }
-    
 }
 
 /* Breadcrumb Styles */

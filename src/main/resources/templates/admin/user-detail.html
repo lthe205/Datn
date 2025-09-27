@@ -1,0 +1,186 @@
+<div class="user-detail">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h5 class="card-title mb-0">Avatar</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="user-avatar-large">
+                        <img th:if="${user.avatarUrl != null and !user.avatarUrl.isEmpty()}" 
+                             th:src="${user.avatarUrl}" 
+                             th:alt="${user.ten}"
+                             class="avatar-img-large">
+                        <div th:unless="${user.avatarUrl != null and !user.avatarUrl.isEmpty()}" 
+                             class="avatar-placeholder-large">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <h4 class="mt-3" th:text="${user.ten}">Tên người dùng</h4>
+                    <p class="text-muted" th:text="${user.email}">email@example.com</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Thông tin chi tiết</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label>Họ tên:</label>
+                                <span th:text="${user.ten}">Tên người dùng</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Email:</label>
+                                <span th:text="${user.email}">email@example.com</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Số điện thoại:</label>
+                                <span th:text="${user.soDienThoai != null ? user.soDienThoai : 'Chưa cập nhật'}">0123456789</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Giới tính:</label>
+                                <span th:text="${user.gioiTinh != null ? user.gioiTinh : 'Chưa cập nhật'}">Nam/Nữ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label>Ngày sinh:</label>
+                                <span th:text="${user.ngaySinh != null ? #temporals.format(user.ngaySinh, 'dd/MM/yyyy') : 'Chưa cập nhật'}">01/01/1990</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Địa chỉ:</label>
+                                <span th:text="${user.diaChi != null ? user.diaChi : 'Chưa cập nhật'}">Địa chỉ</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Thành phố:</label>
+                                <span th:text="${user.thanhPho != null ? user.thanhPho : 'Chưa cập nhật'}">Thành phố</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Vai trò:</label>
+                                <span class="badge bg-secondary" th:text="${user.vaiTro.tenVaiTro}">Vai trò</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label>Trạng thái:</label>
+                                <span th:if="${user.hoatDong}" class="badge bg-success">
+                                    <i class="fas fa-check"></i> Hoạt động
+                                </span>
+                                <span th:unless="${user.hoatDong}" class="badge bg-danger">
+                                    <i class="fas fa-times"></i> Tạm dừng
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <label>Tài khoản bị khóa:</label>
+                                <span th:if="${user.biKhoa}" class="badge bg-warning">
+                                    <i class="fas fa-lock"></i> Có
+                                </span>
+                                <span th:unless="${user.biKhoa}" class="badge bg-success">
+                                    <i class="fas fa-unlock"></i> Không
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label>Ngày tạo:</label>
+                                <span th:text="${#temporals.format(user.ngayTao, 'dd/MM/yyyy HH:mm')}">01/01/2024 12:00</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Cập nhật lần cuối:</label>
+                                <span th:text="${user.ngayCapNhat != null ? #temporals.format(user.ngayCapNhat, 'dd/MM/yyyy HH:mm') : 'Chưa cập nhật'}">01/01/2024 12:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${user.biKhoa and user.lyDoKhoa != null}" class="alert alert-warning mt-3">
+                        <strong>Lý do khóa tài khoản:</strong>
+                        <span th:text="${user.lyDoKhoa}">Lý do khóa</span>
+                    </div>
+                    
+                    <div th:if="${user.provider == 'GOOGLE'}" class="alert alert-info mt-3">
+                        <i class="fab fa-google"></i>
+                        <strong>Tài khoản Google:</strong> Người dùng đăng nhập bằng Google
+                        <br>
+                        <small>Google ID: <span th:text="${user.googleId}">google_id</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-avatar-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+    position: relative;
+}
+
+.avatar-img-large {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-large {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.info-item {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: #495057;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.info-item span {
+    color: #6c757d;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 12px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+</style>

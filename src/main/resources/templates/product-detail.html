@@ -13,12 +13,50 @@
     <header class="header">
         <div class="container">
             <div class="header-top">
-                <div class="logo">
-                    <h1><i class="fas fa-dumbbell"></i> Activewear Store</h1>
-                </div>
+                <a th:href="@{/}" class="logo">
+                    <div class="logo-icon">
+                        <span class="logo-letter">A</span>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-line1">ACTIVEWEAR</div>
+                        <div class="logo-line2">STORE<sup>®</sup></div>
+                    </div>
+                </a>
+                <nav class="main-nav">
+                    <ul>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">THƯƠNG HIỆU <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
+                                    <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
+                                </li>
+                                <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
+                                    <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">MÔN THỂ THAO <i class="fas fa-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li th:each="monTheThao : ${danhMucMonTheThao}" th:if="${danhMucMonTheThao != null and !danhMucMonTheThao.isEmpty()}">
+                                    <a th:href="@{/mon-the-thao/{id}(id=${monTheThao.id})}" th:text="${monTheThao.ten}">Tên môn thể thao</a>
+                                </li>
+                                <li th:if="${danhMucMonTheThao == null or danhMucMonTheThao.isEmpty()}">
+                                    <a href="#" style="color: #999; cursor: default;">Chưa có môn thể thao</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><a th:href="@{/san-pham-moi}">SẢN PHẨM MỚI</a></li>
+                        <li><a th:href="@{/nam}">NAM</a></li>
+                        <li><a th:href="@{/nu}">NỮ</a></li>
+                        <li><a th:href="@{/tre-em}">TRẺ EM</a></li>
+                        <li><a th:href="@{/outlet}">OUTLET</a></li>
+                        <li><a th:href="@{/lien-he}">LIÊN HỆ</a></li>
+                    </ul>
+                </nav>
                 <div class="search-bar">
                     <form th:action="@{/tim-kiem}" method="get">
-                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm...">
+                        <input type="text" name="q" placeholder="Tìm kiếm..." th:value="${keyword}">
                         <button type="submit"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
@@ -54,35 +92,6 @@
                     </div>
                 </div>
             </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a th:href="@{/}">Trang chủ</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">Danh mục <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <li th:each="danhMuc : ${danhMucCha}" th:if="${danhMucCha != null and !danhMucCha.isEmpty()}">
-                                <a th:href="@{/danh-muc/{id}(id=${danhMuc.id})}" th:text="${danhMuc.ten}">Tên danh mục</a>
-                            </li>
-                            <li th:if="${danhMucCha == null or danhMucCha.isEmpty()}">
-                                <a href="#" style="color: #999; cursor: default;">Chưa có danh mục</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">Thương hiệu <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <li th:each="brand : ${thuongHieu}" th:if="${thuongHieu != null and !thuongHieu.isEmpty()}">
-                                <a th:href="@{/thuong-hieu/{id}(id=${brand.id})}" th:text="${brand.ten}">Tên thương hiệu</a>
-                            </li>
-                            <li th:if="${thuongHieu == null or thuongHieu.isEmpty()}">
-                                <a href="#" style="color: #999; cursor: default;">Chưa có thương hiệu</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li><a href="#khuyen-mai">Khuyến mãi</a></li>
-                        <li><a th:href="@{/lien-he}">Liên hệ</a></li>
-                </ul>
-            </nav>
         </div>
     </header>
 
