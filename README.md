@@ -122,6 +122,13 @@ mvn spring-boot:run
 - Quản lý slider banner
 - Hiển thị banner động
 
+#### **📱 Responsive Design**
+- Giao diện thân thiện mobile
+- Bootstrap responsive
+- Mobile-first approach
+
+### 🚧 **Đang phát triển**
+
 #### **👨‍💼 Admin Panel**
 - Dashboard tổng quan
 - Quản lý sản phẩm (CRUD)
@@ -131,13 +138,6 @@ mvn spring-boot:run
 - Quản lý banner (CRUD)
 - Quản lý người dùng
 - Upload hình ảnh sản phẩm
-
-#### **📱 Responsive Design**
-- Giao diện thân thiện mobile
-- Bootstrap responsive
-- Mobile-first approach
-
-### 🚧 **Đang phát triển**
 
 #### **💳 Payment System**
 - Tích hợp cổng thanh toán
