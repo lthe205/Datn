@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hủy đơn hàng - Activewear Store</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .order-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .order-details {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        .item-row:last-child {
+            border-bottom: none;
+        }
+        .item-info {
+            flex: 1;
+        }
+        .item-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .item-details {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .item-price {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .total-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        .total-final {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+            border-top: 2px solid #e74c3c;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .cancellation-reason {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .reason-label {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+        .reason-text {
+            color: #856404;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-primary {
+            background-color: #3498db;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏃‍♂️ Activewear Store</div>
+            <h1 style="color: #e74c3c; margin: 0;">Đơn hàng đã được hủy</h1>
+        </div>
+
+        <div class="order-info">
+            <h2 style="color: #e74c3c; margin-top: 0;">Thông tin đơn hàng</h2>
+            <p><strong>Mã đơn hàng:</strong> <span th:text="${order.maDonHang}">#DH123456</span></p>
+            <p><strong>Ngày đặt hàng:</strong> <span th:text="${#temporals.format(order.ngayTao, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</span></p>
+            <p><strong>Trạng thái:</strong> <span class="status-badge">Đã hủy</span></p>
+        </div>
+
+        <div th:if="${reason != null and !reason.isEmpty()}" class="cancellation-reason">
+            <div class="reason-label">Lý do hủy đơn hàng:</div>
+            <div class="reason-text" th:text="${reason}">Khách hàng yêu cầu hủy</div>
+        </div>
+
+        <div class="order-details">
+            <h3 style="color: #2c3e50; margin-top: 0;">Chi tiết đơn hàng</h3>
+            
+            <div th:each="item : ${order.orderItems}" class="item-row">
+                <div class="item-info">
+                    <div class="item-name" th:text="${item.sanPham.ten}">Tên sản phẩm</div>
+                    <div class="item-details">
+                        <span th:if="${item.kichCo != null}">Kích cỡ: <span th:text="${item.kichCo}">M</span></span>
+                        <span th:if="${item.mauSac != null}"> | Màu sắc: <span th:text="${item.mauSac}">Đỏ</span></span>
+                        <span> | Số lượng: <span th:text="${item.soLuong}">1</span></span>
+                    </div>
+                </div>
+                <div class="item-price" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT')} + ' ₫'">500,000 ₫</div>
+            </div>
+
+            <div class="total-section">
+                <div class="total-row">
+                    <span>Tạm tính:</span>
+                    <span th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' ₫'">500,000 ₫</span>
+                </div>
+                <div class="total-row">
+                    <span>Phí vận chuyển:</span>
+                    <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + ' ₫'">30,000 ₫</span>
+                </div>
+                <div class="total-row total-final">
+                    <span>Tổng cộng:</span>
+                    <span th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">530,000 ₫</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #2c3e50; margin-top: 0;">Thông tin giao hàng</h3>
+            <p><strong>Người nhận:</strong> <span th:text="${order.tenNguoiNhan}">Nguyễn Văn A</span></p>
+            <p><strong>Số điện thoại:</strong> <span th:text="${order.soDienThoaiNhan}">0123456789</span></p>
+            <p><strong>Địa chỉ:</strong> <span th:text="${order.diaChiGiaoHang}">123 Đường ABC, Quận 1, TP.HCM</span></p>
+            <p><strong>Phương thức thanh toán:</strong> 
+                <span th:if="${order.phuongThucThanhToan == 'COD'}">Thanh toán khi nhận hàng (COD)</span>
+                <span th:if="${order.phuongThucThanhToan == 'BANK_TRANSFER'}">Chuyển khoản ngân hàng</span>
+                <span th:if="${order.phuongThucThanhToan == 'CREDIT_CARD'}">Thẻ tín dụng</span>
+            </p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <p style="color: #e74c3c; font-weight: bold; font-size: 16px;">
+                Đơn hàng của bạn đã được hủy thành công.
+            </p>
+            <p style="color: #6c757d;">
+                Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi.
+            </p>
+        </div>
+
+        <div style="text-align: center;">
+            <a th:href="${baseUrl} + '/orders'" class="btn btn-primary">Xem đơn hàng</a>
+            <a th:href="${baseUrl}" class="btn">Về trang chủ</a>
+        </div>
+
+        <div class="footer">
+            <p><strong>Activewear Store</strong></p>
+            <p>📧 Email: support@activewearstore.com</p>
+            <p>📞 Hotline: 1900 1234</p>
+            <p>🌐 Website: <span th:text="${baseUrl}">http://localhost:8080</span></p>
+            <p style="margin-top: 20px; font-size: 12px; color: #adb5bd;">
+                Email này được gửi tự động, vui lòng không trả lời.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
